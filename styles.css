@@ -305,6 +305,93 @@ h1 {
   color: var(--muted);
 }
 
+.school-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.school-card {
+  text-align: left;
+  cursor: pointer;
+  border: none;
+}
+
+.school-card h3 {
+  margin: 0 0 6px;
+}
+
+.class-form,
+.assignment-form {
+  margin-top: 20px;
+  display: grid;
+  gap: 10px;
+}
+
+.class-form input,
+.assignment-form input {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #d6c9bc;
+  font-size: 0.95rem;
+}
+
+.table-wrap {
+  margin-top: 16px;
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eadfd2;
+}
+
+.class-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+}
+
+.class-table th,
+.class-table td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.class-table thead {
+  background: #f3ebe2;
+}
+
+.class-table tbody tr + tr {
+  border-top: 1px solid #eadfd2;
+}
+
+.class-table button {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.class-summary {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.summary-label {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 .muted {
   color: var(--muted);
   margin: 0;
@@ -338,6 +425,16 @@ h1 {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .class-form,
+  .assignment-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    align-items: end;
+  }
+
+  .school-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

@@ -1,9 +1,13 @@
-const STORAGE_KEY = "pocket-atlas-lists-v1";
+const LISTS_STORAGE_KEY = "pocket-atlas-lists-v1";
+const SCHOOL_STORAGE_KEY = "pocket-atlas-school-v1";
 
 const pages = {
   home: document.getElementById("page-home"),
   lists: document.getElementById("page-lists"),
-  note: document.getElementById("page-note")
+  note: document.getElementById("page-note"),
+  school: document.getElementById("page-school"),
+  semester: document.getElementById("page-semester"),
+  class: document.getElementById("page-class")
 };
 
 const navButtons = document.querySelectorAll("[data-target]");
@@ -20,12 +24,42 @@ const insertCircle = document.getElementById("insert-circle");
 const installButton = document.getElementById("install-btn");
 const installHint = document.getElementById("install-hint");
 
+const schoolCards = document.querySelectorAll(".school-card");
+const semesterTitle = document.getElementById("semester-title");
+const classForm = document.getElementById("class-form");
+const classCodeInput = document.getElementById("class-code");
+const classNameInput = document.getElementById("class-name");
+const classCrnInput = document.getElementById("class-crn");
+const classStats = document.getElementById("class-stats");
+const classTableBody = document.getElementById("class-table-body");
+const classEmpty = document.getElementById("class-empty");
+
+const classTitle = document.getElementById("class-title");
+const classSubtitle = document.getElementById("class-subtitle");
+const classGrade = document.getElementById("class-grade");
+const classWeight = document.getElementById("class-weight");
+const assignmentForm = document.getElementById("assignment-form");
+const assignmentNameInput = document.getElementById("assignment-name");
+const assignmentWeightInput = document.getElementById("assignment-weight");
+const assignmentGradeInput = document.getElementById("assignment-grade");
+const assignmentTableBody = document.getElementById("assignment-table-body");
+const assignmentEmpty = document.getElementById("assignment-empty");
+
 let deferredInstallPrompt = null;
 let lists = loadLists();
 let currentListId = null;
+let schoolData = loadSchoolData();
+let currentSemesterId = null;
+let currentClassId = null;
+
+const semesterNames = {
+  "3rd-year-winter": "3rd Year Winter",
+  "4th-year-fall": "4th Year Fall",
+  "4th-year-winter": "4th Year Winter"
+};
 
 function loadLists() {
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = localStorage.getItem(LISTS_STORAGE_KEY);
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -36,7 +70,36 @@ function loadLists() {
 }
 
 function saveLists() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+  localStorage.setItem(LISTS_STORAGE_KEY, JSON.stringify(lists));
+}
+
+function loadSchoolData() {
+  const raw = localStorage.getItem(SCHOOL_STORAGE_KEY);
+  if (!raw) {
+    return {
+      semesters: {
+        "3rd-year-winter": { classes: [] },
+        "4th-year-fall": { classes: [] },
+        "4th-year-winter": { classes: [] }
+      }
+    };
+  }
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn("Failed to parse school data", error);
+    return {
+      semesters: {
+        "3rd-year-winter": { classes: [] },
+        "4th-year-fall": { classes: [] },
+        "4th-year-winter": { classes: [] }
+      }
+    };
+  }
+}
+
+function saveSchoolData() {
+  localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(schoolData));
 }
 
 function formatUpdated(timestamp) {
@@ -180,6 +243,12 @@ function setPage(target) {
   if (safeTarget === "note" && !currentListId) {
     safeTarget = "lists";
   }
+  if (safeTarget === "semester" && !currentSemesterId) {
+    safeTarget = "school";
+  }
+  if (safeTarget === "class" && !currentClassId) {
+    safeTarget = "semester";
+  }
 
   Object.values(pages).forEach((page) => page.classList.remove("is-active"));
   if (pages[safeTarget]) {
@@ -189,6 +258,9 @@ function setPage(target) {
   if (safeTarget === "lists") {
     listTitleInput.focus();
   }
+  if (safeTarget === "class") {
+    assignmentNameInput.focus();
+  }
 }
 
 function handleNavigation(target) {
@@ -196,10 +268,224 @@ function handleNavigation(target) {
   history.replaceState(null, "", `#${target}`);
 }
 
+function getSemester(semesterId) {
+  return schoolData.semesters[semesterId];
+}
+
+function getClass(semesterId, classId) {
+  const semester = getSemester(semesterId);
+  if (!semester) return null;
+  return semester.classes.find((item) => item.id === classId) || null;
+}
+
+function computeClassStats(classItem) {
+  if (!classItem || !classItem.assignments.length) {
+    return { grade: null, weight: 0 };
+  }
+
+  const weightTotal = classItem.assignments.reduce(
+    (sum, item) => sum + (Number(item.weight) || 0),
+    0
+  );
+  const weightedGrade = classItem.assignments.reduce((sum, item) => {
+    const weight = Number(item.weight) || 0;
+    const grade = Number(item.grade) || 0;
+    return sum + weight * grade;
+  }, 0);
+
+  if (weightTotal <= 0) {
+    return { grade: null, weight: 0 };
+  }
+
+  return {
+    grade: weightedGrade / weightTotal,
+    weight: weightTotal
+  };
+}
+
+function renderSemester() {
+  const semester = getSemester(currentSemesterId);
+  if (!semester) return;
+
+  semesterTitle.textContent = semesterNames[currentSemesterId] || "Semester";
+  classTableBody.innerHTML = "";
+
+  const classes = semester.classes;
+  classStats.textContent = `${classes.length} / 6 classes`;
+  classEmpty.hidden = classes.length !== 0;
+  classForm.querySelector("button").disabled = classes.length >= 6;
+
+  classes.forEach((item) => {
+    const stats = computeClassStats(item);
+    const gradeText = stats.grade === null ? "--" : `${stats.grade.toFixed(1)}%`;
+    const weightText = stats.weight === 0 ? "0%" : `${stats.weight.toFixed(1)}%`;
+
+    const row = document.createElement("tr");
+
+    const codeCell = document.createElement("td");
+    codeCell.textContent = item.code;
+
+    const nameCell = document.createElement("td");
+    nameCell.textContent = item.name;
+
+    const crnCell = document.createElement("td");
+    crnCell.textContent = item.crn;
+
+    const gradeCell = document.createElement("td");
+    gradeCell.textContent = gradeText;
+
+    const weightCell = document.createElement("td");
+    weightCell.textContent = weightText;
+
+    const openCell = document.createElement("td");
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.textContent = "Open";
+    openBtn.addEventListener("click", () => openClass(item.id));
+    openCell.appendChild(openBtn);
+
+    row.appendChild(codeCell);
+    row.appendChild(nameCell);
+    row.appendChild(crnCell);
+    row.appendChild(gradeCell);
+    row.appendChild(weightCell);
+    row.appendChild(openCell);
+
+    classTableBody.appendChild(row);
+  });
+
+  saveSchoolData();
+}
+
+function openSemester(semesterId) {
+  currentSemesterId = semesterId;
+  renderSemester();
+  setPage("semester");
+  history.replaceState(null, "", "#semester");
+}
+
+function createClass() {
+  const semester = getSemester(currentSemesterId);
+  if (!semester) return;
+  if (semester.classes.length >= 6) return;
+
+  const code = classCodeInput.value.trim();
+  const name = classNameInput.value.trim();
+  const crn = classCrnInput.value.trim();
+  if (!code || !name || !crn) return;
+
+  semester.classes.push({
+    id: crypto.randomUUID(),
+    code,
+    name,
+    crn,
+    assignments: []
+  });
+
+  classCodeInput.value = "";
+  classNameInput.value = "";
+  classCrnInput.value = "";
+
+  renderSemester();
+}
+
+function renderClass() {
+  const classItem = getClass(currentSemesterId, currentClassId);
+  if (!classItem) return;
+
+  classTitle.textContent = `${classItem.code} - ${classItem.name}`;
+  classSubtitle.textContent = `CRN ${classItem.crn}`;
+
+  const stats = computeClassStats(classItem);
+  classGrade.textContent = stats.grade === null ? "--" : `${stats.grade.toFixed(1)}%`;
+  classWeight.textContent = `${stats.weight.toFixed(1)}%`;
+
+  assignmentTableBody.innerHTML = "";
+  assignmentEmpty.hidden = classItem.assignments.length !== 0;
+
+  classItem.assignments.forEach((assignment) => {
+    const row = document.createElement("tr");
+
+    const nameCell = document.createElement("td");
+    nameCell.textContent = assignment.name;
+
+    const weightCell = document.createElement("td");
+    weightCell.textContent = Number(assignment.weight).toFixed(1);
+
+    const gradeCell = document.createElement("td");
+    gradeCell.textContent = Number(assignment.grade).toFixed(1);
+
+    const deleteCell = document.createElement("td");
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Remove";
+    deleteBtn.addEventListener("click", () => removeAssignment(assignment.id));
+    deleteCell.appendChild(deleteBtn);
+
+    row.appendChild(nameCell);
+    row.appendChild(weightCell);
+    row.appendChild(gradeCell);
+    row.appendChild(deleteCell);
+
+    assignmentTableBody.appendChild(row);
+  });
+
+  saveSchoolData();
+  renderSemester();
+}
+
+function openClass(classId) {
+  currentClassId = classId;
+  renderClass();
+  setPage("class");
+  history.replaceState(null, "", "#class");
+}
+
+function addAssignment() {
+  const classItem = getClass(currentSemesterId, currentClassId);
+  if (!classItem) return;
+
+  const name = assignmentNameInput.value.trim();
+  const weight = Number(assignmentWeightInput.value);
+  const grade = Number(assignmentGradeInput.value);
+
+  if (!name) return;
+  if (Number.isNaN(weight) || Number.isNaN(grade)) return;
+
+  classItem.assignments.push({
+    id: crypto.randomUUID(),
+    name,
+    weight,
+    grade
+  });
+
+  assignmentNameInput.value = "";
+  assignmentWeightInput.value = "";
+  assignmentGradeInput.value = "";
+
+  renderClass();
+}
+
+function removeAssignment(assignmentId) {
+  const classItem = getClass(currentSemesterId, currentClassId);
+  if (!classItem) return;
+
+  classItem.assignments = classItem.assignments.filter(
+    (item) => item.id !== assignmentId
+  );
+  renderClass();
+}
+
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const target = button.dataset.target;
     handleNavigation(target);
+  });
+});
+
+schoolCards.forEach((card) => {
+  card.addEventListener("click", () => {
+    openSemester(card.dataset.semester);
   });
 });
 
@@ -242,6 +528,16 @@ textBold.addEventListener("click", () => {
 
 insertSquare.addEventListener("click", () => insertCheck("square"));
 insertCircle.addEventListener("click", () => insertCheck("circle"));
+
+classForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  createClass();
+});
+
+assignmentForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addAssignment();
+});
 
 renderLists();
 
