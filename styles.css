@@ -50,11 +50,7 @@ body {
   font-size: 1.1rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.topnav {
-  display: flex;
-  gap: 8px;
+  margin-left: auto;
 }
 
 .nav-btn {
@@ -64,10 +60,58 @@ body {
   border-radius: 999px;
   font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
   color: var(--muted);
+  text-align: left;
+  width: 100%;
 }
 
 .nav-btn:hover {
   border-color: var(--accent-soft);
+}
+
+.menu-btn {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 220px;
+  padding: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 10px;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 20;
+}
+
+.side-menu.is-open {
+  transform: translateX(0);
+}
+
+.side-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.menu-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 15;
 }
 
 .page-wrap {

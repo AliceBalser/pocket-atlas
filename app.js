@@ -26,6 +26,10 @@ const importButton = document.getElementById("import-data");
 const importFileInput = document.getElementById("import-file");
 const installButton = document.getElementById("install-btn");
 const installHint = document.getElementById("install-hint");
+const menuToggle = document.getElementById("menu-toggle");
+const menuClose = document.getElementById("menu-close");
+const sideMenu = document.getElementById("side-menu");
+const menuScrim = document.getElementById("menu-scrim");
 
 const schoolCards = document.querySelectorAll(".school-card");
 const semesterTitle = document.getElementById("semester-title");
@@ -284,6 +288,18 @@ function handleNavigation(target) {
   history.replaceState(null, "", `#${target}`);
 }
 
+function openMenu() {
+  sideMenu.classList.add("is-open");
+  sideMenu.setAttribute("aria-hidden", "false");
+  menuScrim.hidden = false;
+}
+
+function closeMenu() {
+  sideMenu.classList.remove("is-open");
+  sideMenu.setAttribute("aria-hidden", "true");
+  menuScrim.hidden = true;
+}
+
 function getSemester(semesterId) {
   return schoolData.semesters[semesterId];
 }
@@ -509,6 +525,7 @@ navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const target = button.dataset.target;
     handleNavigation(target);
+    closeMenu();
   });
 });
 
@@ -566,6 +583,18 @@ classForm.addEventListener("submit", (event) => {
 assignmentForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addAssignment();
+});
+
+menuToggle.addEventListener("click", () => {
+  openMenu();
+});
+
+menuClose.addEventListener("click", () => {
+  closeMenu();
+});
+
+menuScrim.addEventListener("click", () => {
+  closeMenu();
 });
 
 exportButton.addEventListener("click", () => {

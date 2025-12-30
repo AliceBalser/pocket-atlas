@@ -12,13 +12,20 @@
   <body>
     <div class="grain" aria-hidden="true"></div>
     <header class="topbar">
+      <button class="menu-btn" id="menu-toggle" aria-label="Open menu">☰</button>
       <div class="brand">Pocket Atlas</div>
-      <nav class="topnav">
-        <button class="nav-btn" data-target="home">Home</button>
-        <button class="nav-btn" data-target="lists">Lists</button>
-        <button class="nav-btn" data-target="school">School</button>
-      </nav>
     </header>
+
+    <nav class="side-menu" id="side-menu" aria-hidden="true">
+      <div class="side-menu-header">
+        <span>Menu</span>
+        <button class="ghost" id="menu-close" aria-label="Close menu">Close</button>
+      </div>
+      <button class="nav-btn" data-target="home">Home</button>
+      <button class="nav-btn" data-target="lists">Lists</button>
+      <button class="nav-btn" data-target="school">School</button>
+    </nav>
+    <div class="menu-scrim" id="menu-scrim" hidden></div>
 
     <main class="page-wrap">
       <section id="page-home" class="page is-active">
@@ -31,7 +38,6 @@
               space for your lists and ideas.
             </p>
             <div class="hero-actions">
-              <button class="primary" data-target="lists">Start with Lists</button>
               <button class="ghost" id="install-btn" hidden>Install App</button>
             </div>
           </div>
