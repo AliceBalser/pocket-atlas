@@ -1,114 +1,198 @@
-﻿const STORAGE_KEY = "pocket-atlas-todos-v1";
+const STORAGE_KEY = "pocket-atlas-lists-v1";
 
 const pages = {
   home: document.getElementById("page-home"),
-  todo: document.getElementById("page-todo")
+  lists: document.getElementById("page-lists"),
+  note: document.getElementById("page-note")
 };
 
 const navButtons = document.querySelectorAll("[data-target]");
-const todoForm = document.getElementById("todo-form");
-const todoInput = document.getElementById("todo-input");
-const todoList = document.getElementById("todo-list");
-const todoStats = document.getElementById("todo-stats");
-const todoEmpty = document.getElementById("todo-empty");
+const listForm = document.getElementById("list-form");
+const listTitleInput = document.getElementById("list-title-input");
+const listList = document.getElementById("list-list");
+const listStats = document.getElementById("list-stats");
+const listEmpty = document.getElementById("list-empty");
+const noteTitle = document.getElementById("note-title");
+const noteEditor = document.getElementById("note-editor");
+const textNormal = document.getElementById("text-normal");
+const textLarge = document.getElementById("text-large");
+const textBold = document.getElementById("text-bold");
+const insertSquare = document.getElementById("insert-square");
+const insertCircle = document.getElementById("insert-circle");
 const installButton = document.getElementById("install-btn");
 const installHint = document.getElementById("install-hint");
 
 let deferredInstallPrompt = null;
-let todos = loadTodos();
+let lists = loadLists();
+let currentListId = null;
 
-function loadTodos() {
+function loadLists() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
     return JSON.parse(raw);
   } catch (error) {
-    console.warn("Failed to parse todos", error);
+    console.warn("Failed to parse lists", error);
     return [];
   }
 }
 
-function saveTodos() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+function saveLists() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
 }
 
-function renderTodos() {
-  todoList.innerHTML = "";
+function formatUpdated(timestamp) {
+  if (!timestamp) return "Never";
+  return new Date(timestamp).toLocaleDateString();
+}
 
-  if (todos.length === 0) {
-    todoEmpty.hidden = false;
+function renderLists() {
+  listList.innerHTML = "";
+
+  if (lists.length === 0) {
+    listEmpty.hidden = false;
   } else {
-    todoEmpty.hidden = true;
+    listEmpty.hidden = true;
   }
 
-  const remaining = todos.filter((item) => !item.done).length;
-  todoStats.textContent = `${todos.length} item${todos.length === 1 ? "" : "s"} (${remaining} open)`;
+  listStats.textContent = `${lists.length} list${lists.length === 1 ? "" : "s"}`;
 
-  todos.forEach((item) => {
+  lists.forEach((list) => {
     const li = document.createElement("li");
-    li.className = `todo-item${item.done ? " done" : ""}`;
+    li.className = "list-item";
 
-    const label = document.createElement("span");
-    label.textContent = item.text;
+    const textBlock = document.createElement("div");
 
-    const actions = document.createElement("div");
+    const title = document.createElement("h4");
+    title.textContent = list.title;
 
-    const toggleBtn = document.createElement("button");
-    toggleBtn.type = "button";
-    toggleBtn.textContent = item.done ? "Undo" : "Done";
-    toggleBtn.addEventListener("click", () => toggleTodo(item.id));
+    const meta = document.createElement("p");
+    meta.textContent = `Updated ${formatUpdated(list.updatedAt)}`;
 
-    const deleteBtn = document.createElement("button");
-    deleteBtn.type = "button";
-    deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => deleteTodo(item.id));
+    textBlock.appendChild(title);
+    textBlock.appendChild(meta);
 
-    actions.appendChild(toggleBtn);
-    actions.appendChild(deleteBtn);
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.textContent = "Open";
+    openBtn.addEventListener("click", () => openList(list.id));
 
-    li.appendChild(label);
-    li.appendChild(actions);
-
-    todoList.appendChild(li);
+    li.appendChild(textBlock);
+    li.appendChild(openBtn);
+    listList.appendChild(li);
   });
 }
 
-function addTodo(text) {
-  const trimmed = text.trim();
-  if (!trimmed) return;
+function createList(title) {
+  const trimmed = title.trim();
+  const listTitle = trimmed || "Untitled list";
 
-  todos.unshift({
+  const newList = {
     id: crypto.randomUUID(),
-    text: trimmed,
-    done: false,
-    createdAt: Date.now()
-  });
+    title: listTitle,
+    content: "",
+    textSize: "normal",
+    updatedAt: Date.now()
+  };
 
-  saveTodos();
-  renderTodos();
+  lists.unshift(newList);
+  saveLists();
+  renderLists();
+  openList(newList.id);
 }
 
-function toggleTodo(id) {
-  todos = todos.map((item) =>
-    item.id === id ? { ...item, done: !item.done } : item
-  );
-  saveTodos();
-  renderTodos();
+function openList(id) {
+  const list = lists.find((item) => item.id === id);
+  if (!list) return;
+
+  currentListId = id;
+  noteTitle.value = list.title;
+  noteEditor.innerHTML = list.content || "";
+  applyTextSize(list.textSize || "normal");
+  setPage("note");
+  history.replaceState(null, "", "#note");
+  noteTitle.focus();
 }
 
-function deleteTodo(id) {
-  todos = todos.filter((item) => item.id !== id);
-  saveTodos();
-  renderTodos();
+function updateCurrentList() {
+  if (!currentListId) return;
+  const list = lists.find((item) => item.id === currentListId);
+  if (!list) return;
+
+  const trimmedTitle = noteTitle.value.trim();
+  list.title = trimmedTitle || "Untitled list";
+  list.content = noteEditor.innerHTML;
+  list.textSize = noteEditor.classList.contains("large") ? "large" : "normal";
+  list.updatedAt = Date.now();
+
+  saveLists();
+  renderLists();
+}
+
+function applyTextSize(size) {
+  const isLarge = size === "large";
+  noteEditor.classList.toggle("large", isLarge);
+  textNormal.classList.toggle("is-active", !isLarge);
+  textLarge.classList.toggle("is-active", isLarge);
+}
+
+function insertHtmlAtCursor(html) {
+  const selection = window.getSelection();
+  if (!selection) {
+    noteEditor.innerHTML += html;
+    return;
+  }
+
+  let range = selection.rangeCount ? selection.getRangeAt(0) : null;
+  if (!range || !noteEditor.contains(range.startContainer)) {
+    noteEditor.focus();
+    range = document.createRange();
+    range.selectNodeContents(noteEditor);
+    range.collapse(false);
+  }
+
+  const fragment = document.createDocumentFragment();
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+
+  let node;
+  let lastNode = null;
+  while ((node = temp.firstChild)) {
+    lastNode = fragment.appendChild(node);
+  }
+
+  range.deleteContents();
+  range.insertNode(fragment);
+
+  if (lastNode) {
+    range = range.cloneRange();
+    range.setStartAfter(lastNode);
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+}
+
+function insertCheck(type) {
+  const checkClass = type === "circle" ? "check check-circle" : "check";
+  const html = `<div><span class="${checkClass}" contenteditable="false" data-checked="false"></span>&nbsp;</div>`;
+  insertHtmlAtCursor(html);
+  updateCurrentList();
 }
 
 function setPage(target) {
-  Object.values(pages).forEach((page) => page.classList.remove("is-active"));
-  if (pages[target]) {
-    pages[target].classList.add("is-active");
+  let safeTarget = target;
+  if (safeTarget === "note" && !currentListId) {
+    safeTarget = "lists";
   }
-  if (target === "todo") {
-    todoInput.focus();
+
+  Object.values(pages).forEach((page) => page.classList.remove("is-active"));
+  if (pages[safeTarget]) {
+    pages[safeTarget].classList.add("is-active");
+  }
+
+  if (safeTarget === "lists") {
+    listTitleInput.focus();
   }
 }
 
@@ -133,13 +217,43 @@ if (location.hash) {
   setPage(location.hash.replace("#", ""));
 }
 
-todoForm.addEventListener("submit", (event) => {
+listForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  addTodo(todoInput.value);
-  todoInput.value = "";
+  createList(listTitleInput.value);
+  listTitleInput.value = "";
 });
 
-renderTodos();
+noteTitle.addEventListener("input", updateCurrentList);
+noteEditor.addEventListener("input", updateCurrentList);
+
+noteEditor.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (!target.classList.contains("check")) return;
+  target.classList.toggle("checked");
+  updateCurrentList();
+});
+
+textNormal.addEventListener("click", () => {
+  applyTextSize("normal");
+  updateCurrentList();
+});
+
+textLarge.addEventListener("click", () => {
+  applyTextSize("large");
+  updateCurrentList();
+});
+
+textBold.addEventListener("click", () => {
+  noteEditor.focus();
+  document.execCommand("bold");
+  updateCurrentList();
+});
+
+insertSquare.addEventListener("click", () => insertCheck("square"));
+insertCircle.addEventListener("click", () => insertCheck("circle"));
+
+renderLists();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

@@ -15,7 +15,7 @@
       <div class="brand">Pocket Atlas</div>
       <nav class="topnav">
         <button class="nav-btn" data-target="home">Home</button>
-        <button class="nav-btn" data-target="todo">To-Do</button>
+        <button class="nav-btn" data-target="lists">Lists</button>
       </nav>
     </header>
 
@@ -30,7 +30,7 @@
               space for your lists and ideas.
             </p>
             <div class="hero-actions">
-              <button class="primary" data-target="todo">Start with To-Dos</button>
+              <button class="primary" data-target="lists">Start with Lists</button>
               <button class="ghost" id="install-btn" hidden>Install App</button>
             </div>
           </div>
@@ -62,24 +62,46 @@
         </p>
       </section>
 
-      <section id="page-todo" class="page">
+      <section id="page-lists" class="page">
         <div class="todo-header">
           <div>
-            <h2>To-Do List</h2>
-            <p class="muted">Simple, fast, and stored only on your phone.</p>
+            <h2>Your Lists</h2>
+            <p class="muted">Create lists and open them like notes.</p>
           </div>
           <button class="ghost" data-target="home">Back to Home</button>
         </div>
 
-        <form id="todo-form" class="todo-form" autocomplete="off">
-          <input id="todo-input" type="text" placeholder="Add a new to-do" maxlength="120">
-          <button class="primary" type="submit">Add</button>
+        <form id="list-form" class="todo-form" autocomplete="off">
+          <input id="list-title-input" type="text" placeholder="New list title" maxlength="120">
+          <button class="primary" type="submit">Create</button>
         </form>
 
-        <div class="todo-stats" id="todo-stats">0 items</div>
+        <div class="todo-stats" id="list-stats">0 lists</div>
 
-        <ul id="todo-list" class="todo-list"></ul>
-        <p id="todo-empty" class="empty-state">No tasks yet. Add your first one.</p>
+        <ul id="list-list" class="todo-list"></ul>
+        <p id="list-empty" class="empty-state">No lists yet. Create your first one.</p>
+      </section>
+
+      <section id="page-note" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>List</h2>
+            <p class="muted">Write freely, with bold and two text sizes.</p>
+          </div>
+          <button class="ghost" data-target="lists">Back to Lists</button>
+        </div>
+
+        <input id="note-title" class="note-title" type="text" placeholder="List title">
+
+        <div class="note-toolbar" role="toolbar" aria-label="Note tools">
+          <button class="ghost" type="button" id="text-normal">Normal</button>
+          <button class="ghost" type="button" id="text-large">Large</button>
+          <button class="ghost" type="button" id="text-bold">Bold</button>
+          <button class="ghost" type="button" id="insert-square">Square</button>
+          <button class="ghost" type="button" id="insert-circle">Circle</button>
+        </div>
+
+        <div id="note-editor" class="note-editor" contenteditable="true"></div>
       </section>
     </main>
 
