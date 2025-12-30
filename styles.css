@@ -235,21 +235,11 @@ h1 {
   cursor: pointer;
 }
 
-.note-title {
-  width: 100%;
-  margin-top: 18px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid #d6c9bc;
-  font-size: 1.1rem;
-  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
-}
-
 .note-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .note-toolbar .ghost {

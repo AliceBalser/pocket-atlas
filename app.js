@@ -12,10 +12,8 @@ const listTitleInput = document.getElementById("list-title-input");
 const listList = document.getElementById("list-list");
 const listStats = document.getElementById("list-stats");
 const listEmpty = document.getElementById("list-empty");
-const noteTitle = document.getElementById("note-title");
 const noteEditor = document.getElementById("note-editor");
-const textNormal = document.getElementById("text-normal");
-const textLarge = document.getElementById("text-large");
+const textToggle = document.getElementById("text-toggle");
 const textBold = document.getElementById("text-bold");
 const insertSquare = document.getElementById("insert-square");
 const insertCircle = document.getElementById("insert-circle");
@@ -106,12 +104,11 @@ function openList(id) {
   if (!list) return;
 
   currentListId = id;
-  noteTitle.value = list.title;
   noteEditor.innerHTML = list.content || "";
   applyTextSize(list.textSize || "normal");
   setPage("note");
   history.replaceState(null, "", "#note");
-  noteTitle.focus();
+  noteEditor.focus();
 }
 
 function updateCurrentList() {
@@ -119,8 +116,6 @@ function updateCurrentList() {
   const list = lists.find((item) => item.id === currentListId);
   if (!list) return;
 
-  const trimmedTitle = noteTitle.value.trim();
-  list.title = trimmedTitle || "Untitled list";
   list.content = noteEditor.innerHTML;
   list.textSize = noteEditor.classList.contains("large") ? "large" : "normal";
   list.updatedAt = Date.now();
@@ -132,8 +127,8 @@ function updateCurrentList() {
 function applyTextSize(size) {
   const isLarge = size === "large";
   noteEditor.classList.toggle("large", isLarge);
-  textNormal.classList.toggle("is-active", !isLarge);
-  textLarge.classList.toggle("is-active", isLarge);
+  textToggle.textContent = isLarge ? "Text: Large" : "Text: Normal";
+  textToggle.classList.toggle("is-active", isLarge);
 }
 
 function insertHtmlAtCursor(html) {
@@ -223,7 +218,6 @@ listForm.addEventListener("submit", (event) => {
   listTitleInput.value = "";
 });
 
-noteTitle.addEventListener("input", updateCurrentList);
 noteEditor.addEventListener("input", updateCurrentList);
 
 noteEditor.addEventListener("click", (event) => {
@@ -234,13 +228,9 @@ noteEditor.addEventListener("click", (event) => {
   updateCurrentList();
 });
 
-textNormal.addEventListener("click", () => {
-  applyTextSize("normal");
-  updateCurrentList();
-});
-
-textLarge.addEventListener("click", () => {
-  applyTextSize("large");
+textToggle.addEventListener("click", () => {
+  const nextSize = noteEditor.classList.contains("large") ? "normal" : "large";
+  applyTextSize(nextSize);
   updateCurrentList();
 });
 
