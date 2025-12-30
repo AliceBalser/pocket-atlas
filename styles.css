@@ -171,6 +171,15 @@ h1 {
   color: var(--muted);
 }
 
+.backup-card {
+  margin-top: 20px;
+}
+
+.backup-card p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+
 .todo-header {
   display: flex;
   flex-direction: column;

@@ -61,6 +61,16 @@
         <p class="install-hint" id="install-hint">
           On iPhone: tap Share, then Add to Home Screen.
         </p>
+
+        <div class="card backup-card">
+          <h3>Backup</h3>
+          <p>Export your data to a JSON file and import it later.</p>
+          <div class="hero-actions">
+            <button class="ghost" type="button" id="export-data">Export JSON</button>
+            <button class="ghost" type="button" id="import-data">Import JSON</button>
+            <input id="import-file" type="file" accept="application/json" hidden>
+          </div>
+        </div>
       </section>
 
       <section id="page-lists" class="page">

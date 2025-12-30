@@ -21,6 +21,9 @@ const textToggle = document.getElementById("text-toggle");
 const textBold = document.getElementById("text-bold");
 const insertSquare = document.getElementById("insert-square");
 const insertCircle = document.getElementById("insert-circle");
+const exportButton = document.getElementById("export-data");
+const importButton = document.getElementById("import-data");
+const importFileInput = document.getElementById("import-file");
 const installButton = document.getElementById("install-btn");
 const installHint = document.getElementById("install-hint");
 
@@ -58,6 +61,31 @@ const semesterNames = {
   "4th-year-winter": "4th Year Winter"
 };
 
+function createEmptySchoolData() {
+  return {
+    semesters: {
+      "3rd-year-winter": { classes: [] },
+      "4th-year-fall": { classes: [] },
+      "4th-year-winter": { classes: [] }
+    }
+  };
+}
+
+function normalizeSchoolData(data) {
+  const base = createEmptySchoolData();
+  if (!data || typeof data !== "object") return base;
+  if (!data.semesters || typeof data.semesters !== "object") return base;
+
+  Object.keys(base.semesters).forEach((key) => {
+    const semester = data.semesters[key];
+    if (semester && Array.isArray(semester.classes)) {
+      base.semesters[key].classes = semester.classes;
+    }
+  });
+
+  return base;
+}
+
 function loadLists() {
   const raw = localStorage.getItem(LISTS_STORAGE_KEY);
   if (!raw) return [];
@@ -76,25 +104,13 @@ function saveLists() {
 function loadSchoolData() {
   const raw = localStorage.getItem(SCHOOL_STORAGE_KEY);
   if (!raw) {
-    return {
-      semesters: {
-        "3rd-year-winter": { classes: [] },
-        "4th-year-fall": { classes: [] },
-        "4th-year-winter": { classes: [] }
-      }
-    };
+    return createEmptySchoolData();
   }
   try {
-    return JSON.parse(raw);
+    return normalizeSchoolData(JSON.parse(raw));
   } catch (error) {
     console.warn("Failed to parse school data", error);
-    return {
-      semesters: {
-        "3rd-year-winter": { classes: [] },
-        "4th-year-fall": { classes: [] },
-        "4th-year-winter": { classes: [] }
-      }
-    };
+    return createEmptySchoolData();
   }
 }
 
@@ -550,6 +566,65 @@ classForm.addEventListener("submit", (event) => {
 assignmentForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addAssignment();
+});
+
+exportButton.addEventListener("click", () => {
+  const payload = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    lists,
+    schoolData
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "pocket-atlas-backup.json";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+});
+
+importButton.addEventListener("click", () => {
+  importFileInput.click();
+});
+
+importFileInput.addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const nextLists = Array.isArray(parsed.lists) ? parsed.lists : [];
+      const nextSchool = normalizeSchoolData(parsed.schoolData);
+
+      const confirmed = window.confirm(
+        "Importing will replace your current data. Continue?"
+      );
+      if (!confirmed) return;
+
+      lists = nextLists;
+      schoolData = nextSchool;
+      currentListId = null;
+      currentSemesterId = null;
+      currentClassId = null;
+      saveLists();
+      saveSchoolData();
+      renderLists();
+      setPage("home");
+    } catch (error) {
+      console.warn("Import failed", error);
+      window.alert("Import failed. Please use a valid backup JSON file.");
+    } finally {
+      importFileInput.value = "";
+    }
+  };
+  reader.readAsText(file);
 });
 
 renderLists();
