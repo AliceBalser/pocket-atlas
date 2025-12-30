@@ -283,11 +283,19 @@ function computeClassStats(classItem) {
     return { grade: null, weight: 0 };
   }
 
-  const weightTotal = classItem.assignments.reduce(
+  const gradedItems = classItem.assignments.filter(
+    (item) => typeof item.grade === "number" && !Number.isNaN(item.grade)
+  );
+
+  if (gradedItems.length === 0) {
+    return { grade: null, weight: 0 };
+  }
+
+  const weightTotal = gradedItems.reduce(
     (sum, item) => sum + (Number(item.weight) || 0),
     0
   );
-  const weightedGrade = classItem.assignments.reduce((sum, item) => {
+  const weightedGrade = gradedItems.reduce((sum, item) => {
     const weight = Number(item.weight) || 0;
     const grade = Number(item.grade) || 0;
     return sum + weight * grade;
@@ -328,14 +336,14 @@ function renderSemester() {
     const nameCell = document.createElement("td");
     nameCell.textContent = item.name;
 
-    const crnCell = document.createElement("td");
-    crnCell.textContent = item.crn;
-
     const gradeCell = document.createElement("td");
     gradeCell.textContent = gradeText;
 
     const weightCell = document.createElement("td");
     weightCell.textContent = weightText;
+
+    const crnCell = document.createElement("td");
+    crnCell.textContent = item.crn;
 
     const openCell = document.createElement("td");
     const openBtn = document.createElement("button");
@@ -346,9 +354,9 @@ function renderSemester() {
 
     row.appendChild(codeCell);
     row.appendChild(nameCell);
-    row.appendChild(crnCell);
     row.appendChild(gradeCell);
     row.appendChild(weightCell);
+    row.appendChild(crnCell);
     row.appendChild(openCell);
 
     classTableBody.appendChild(row);
@@ -413,7 +421,10 @@ function renderClass() {
     weightCell.textContent = Number(assignment.weight).toFixed(1);
 
     const gradeCell = document.createElement("td");
-    gradeCell.textContent = Number(assignment.grade).toFixed(1);
+    gradeCell.textContent =
+      typeof assignment.grade === "number" && !Number.isNaN(assignment.grade)
+        ? Number(assignment.grade).toFixed(1)
+        : "--";
 
     const deleteCell = document.createElement("td");
     const deleteBtn = document.createElement("button");
@@ -447,10 +458,12 @@ function addAssignment() {
 
   const name = assignmentNameInput.value.trim();
   const weight = Number(assignmentWeightInput.value);
-  const grade = Number(assignmentGradeInput.value);
+  const gradeRaw = assignmentGradeInput.value.trim();
+  const grade = gradeRaw === "" ? null : Number(gradeRaw);
 
   if (!name) return;
-  if (Number.isNaN(weight) || Number.isNaN(grade)) return;
+  if (Number.isNaN(weight)) return;
+  if (gradeRaw !== "" && Number.isNaN(grade)) return;
 
   classItem.assignments.push({
     id: crypto.randomUUID(),
