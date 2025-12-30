@@ -1,0 +1,88 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6efe8">
+    <title>Pocket Atlas</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="brand">Pocket Atlas</div>
+      <nav class="topnav">
+        <button class="nav-btn" data-target="home">Home</button>
+        <button class="nav-btn" data-target="todo">To-Do</button>
+      </nav>
+    </header>
+
+    <main class="page-wrap">
+      <section id="page-home" class="page is-active">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">Your private, phone-only space</p>
+            <h1>Build your own mini-Notion, one feature at a time.</h1>
+            <p class="lead">
+              Pocket Atlas lives on your phone. No accounts, no servers, just a clean
+              space for your lists and ideas.
+            </p>
+            <div class="hero-actions">
+              <button class="primary" data-target="todo">Start with To-Dos</button>
+              <button class="ghost" id="install-btn" hidden>Install App</button>
+            </div>
+          </div>
+          <div class="card preview">
+            <div class="preview-header">Today</div>
+            <ul>
+              <li>Plan new feature</li>
+              <li>Write one note</li>
+              <li>Check off wins</li>
+            </ul>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="card">
+            <h3>Offline first</h3>
+            <p>Works without internet and keeps data on your phone.</p>
+          </div>
+          <div class="card">
+            <h3>Installable</h3>
+            <p>Add it to your home screen like a regular app.</p>
+          </div>
+          <div class="card">
+            <h3>Expandable</h3>
+            <p>We will grow this with tags, notes, and more.</p>
+          </div>
+        </div>
+        <p class="install-hint" id="install-hint">
+          On iPhone: tap Share, then Add to Home Screen.
+        </p>
+      </section>
+
+      <section id="page-todo" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>To-Do List</h2>
+            <p class="muted">Simple, fast, and stored only on your phone.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form id="todo-form" class="todo-form" autocomplete="off">
+          <input id="todo-input" type="text" placeholder="Add a new to-do" maxlength="120">
+          <button class="primary" type="submit">Add</button>
+        </form>
+
+        <div class="todo-stats" id="todo-stats">0 items</div>
+
+        <ul id="todo-list" class="todo-list"></ul>
+        <p id="todo-empty" class="empty-state">No tasks yet. Add your first one.</p>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

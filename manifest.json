@@ -1,0 +1,17 @@
+﻿{
+  "name": "Pocket Atlas",
+  "short_name": "Atlas",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f6efe8",
+  "theme_color": "#f6efe8",
+  "description": "A private, phone-only mini-Notion for personal notes and to-dos.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
