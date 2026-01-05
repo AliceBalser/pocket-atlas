@@ -528,8 +528,12 @@ h1 {
 .goal-form {
   margin-top: 16px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr auto;
   gap: 10px;
+}
+
+.hobby-form {
+  grid-template-columns: 1fr auto;
 }
 
 .goal-form input {
@@ -554,6 +558,12 @@ h1 {
   gap: 10px;
 }
 
+.goal-meta {
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .goal-card textarea {
   width: 100%;
   min-height: 120px;
@@ -562,6 +572,126 @@ h1 {
   padding: 10px 12px;
   font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
   font-size: 0.95rem;
+  resize: vertical;
+}
+
+.hobby-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.hobby-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eadfd2;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.hobby-stars {
+  display: flex;
+  gap: 6px;
+}
+
+.hobby-stars button {
+  border: none;
+  background: #f3ebe2;
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.hobby-stars button.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.hobby-card textarea {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 12px;
+  border: 1px solid #d6c9bc;
+  padding: 10px 12px;
+  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.plan-form {
+  grid-template-columns: 1fr auto auto;
+}
+
+.plan-layout {
+  margin-top: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.plan-tree {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.plan-tree ul {
+  list-style: none;
+  margin: 8px 0 0 12px;
+  padding-left: 12px;
+  border-left: 2px solid #eadfd2;
+  display: grid;
+  gap: 8px;
+}
+
+.plan-node {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #eadfd2;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  cursor: pointer;
+}
+
+.plan-node.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.plan-editor {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eadfd2;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.plan-editor-title {
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.plan-editor input,
+.plan-editor textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #d6c9bc;
+  padding: 10px 12px;
+  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
+  font-size: 0.95rem;
+}
+
+.plan-editor textarea {
+  min-height: 140px;
   resize: vertical;
 }
 
@@ -699,6 +829,11 @@ h1 {
 
   .habit-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .plan-layout {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
   }
 }
 

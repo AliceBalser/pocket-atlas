@@ -28,6 +28,8 @@
       <button class="nav-btn" data-target="habits-evening">Habits: Evening</button>
       <button class="nav-btn" data-target="habits-lavender">Habits: Lavender</button>
       <button class="nav-btn" data-target="goals">Goals</button>
+      <button class="nav-btn" data-target="hobbies">Hobbies</button>
+      <button class="nav-btn" data-target="plans">Future Plans</button>
     </nav>
     <div class="menu-scrim" id="menu-scrim" hidden></div>
 
@@ -279,11 +281,59 @@
 
         <form id="goal-form" class="goal-form" autocomplete="off">
           <input id="goal-title" type="text" placeholder="Goal title" maxlength="120">
+          <input id="goal-target" type="date">
           <button class="primary" type="submit">Add Goal</button>
         </form>
 
         <div class="goal-list" id="goal-list"></div>
         <p class="empty-state" id="goal-empty">No goals yet.</p>
+      </section>
+
+      <section id="page-hobbies" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>Hobbies</h2>
+            <p class="muted">Track hobbies with notes and ratings.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form id="hobby-form" class="goal-form hobby-form" autocomplete="off">
+          <input id="hobby-title" type="text" placeholder="Hobby name" maxlength="120">
+          <button class="primary" type="submit">Add Hobby</button>
+        </form>
+
+        <div class="hobby-list" id="hobby-list"></div>
+        <p class="empty-state" id="hobby-empty">No hobbies yet.</p>
+      </section>
+
+      <section id="page-plans" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>Future Plans</h2>
+            <p class="muted">Build a tree of ideas and expand them.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form id="plan-form" class="goal-form plan-form" autocomplete="off">
+          <input id="plan-title" type="text" placeholder="New idea" maxlength="120">
+          <button class="primary" type="submit">Add Root</button>
+          <button class="ghost" type="button" id="plan-add-child">Add Child</button>
+        </form>
+
+        <div class="plan-layout">
+          <div>
+            <ul class="plan-tree" id="plan-tree"></ul>
+            <p class="empty-state" id="plan-empty">No plans yet.</p>
+          </div>
+
+          <div class="plan-editor">
+            <div class="plan-editor-title" id="plan-selected-label">Select a node to edit</div>
+            <input id="plan-editor-title" type="text" placeholder="Node title">
+            <textarea id="plan-editor-notes" placeholder="Write details..."></textarea>
+          </div>
+        </div>
       </section>
 
       <section id="page-semester" class="page">

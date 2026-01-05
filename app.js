@@ -2,6 +2,8 @@
 const SCHOOL_STORAGE_KEY = "pocket-atlas-school-v1";
 const HABITS_STORAGE_KEY = "pocket-atlas-habits-v1";
 const GOALS_STORAGE_KEY = "pocket-atlas-goals-v1";
+const HOBBIES_STORAGE_KEY = "pocket-atlas-hobbies-v1";
+const PLANS_STORAGE_KEY = "pocket-atlas-plans-v1";
 
 const pages = {
   home: document.getElementById("page-home"),
@@ -13,7 +15,9 @@ const pages = {
   "habits-morning": document.getElementById("page-habits-morning"),
   "habits-evening": document.getElementById("page-habits-evening"),
   "habits-lavender": document.getElementById("page-habits-lavender"),
-  goals: document.getElementById("page-goals")
+  goals: document.getElementById("page-goals"),
+  hobbies: document.getElementById("page-hobbies"),
+  plans: document.getElementById("page-plans")
 };
 
 const navButtons = document.querySelectorAll("[data-target]");
@@ -72,8 +76,23 @@ const habitEmptyStates = {
 
 const goalForm = document.getElementById("goal-form");
 const goalTitleInput = document.getElementById("goal-title");
+const goalTargetInput = document.getElementById("goal-target");
 const goalList = document.getElementById("goal-list");
 const goalEmpty = document.getElementById("goal-empty");
+
+const hobbyForm = document.getElementById("hobby-form");
+const hobbyTitleInput = document.getElementById("hobby-title");
+const hobbyList = document.getElementById("hobby-list");
+const hobbyEmpty = document.getElementById("hobby-empty");
+
+const planForm = document.getElementById("plan-form");
+const planTitleInput = document.getElementById("plan-title");
+const planAddChildButton = document.getElementById("plan-add-child");
+const planTree = document.getElementById("plan-tree");
+const planEmpty = document.getElementById("plan-empty");
+const planSelectedLabel = document.getElementById("plan-selected-label");
+const planEditorTitle = document.getElementById("plan-editor-title");
+const planEditorNotes = document.getElementById("plan-editor-notes");
 
 let deferredInstallPrompt = null;
 let lists = loadLists();
@@ -83,6 +102,9 @@ let currentSemesterId = null;
 let currentClassId = null;
 let habits = loadHabits();
 let goals = loadGoals();
+let hobbies = loadHobbies();
+let plans = loadPlans();
+let currentPlanId = null;
 let holdTimer = null;
 let holdTarget = null;
 
@@ -181,6 +203,38 @@ function loadGoals() {
 
 function saveGoals() {
   localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
+}
+
+function loadHobbies() {
+  const raw = localStorage.getItem(HOBBIES_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("Failed to parse hobbies", error);
+    return [];
+  }
+}
+
+function saveHobbies() {
+  localStorage.setItem(HOBBIES_STORAGE_KEY, JSON.stringify(hobbies));
+}
+
+function loadPlans() {
+  const raw = localStorage.getItem(PLANS_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("Failed to parse plans", error);
+    return [];
+  }
+}
+
+function savePlans() {
+  localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans));
 }
 
 function formatUpdated(timestamp) {
@@ -913,6 +967,10 @@ function renderGoals() {
     const title = document.createElement("h3");
     title.textContent = goal.title;
 
+    const meta = document.createElement("div");
+    meta.className = "goal-meta";
+    meta.textContent = `Created ${formatGoalDate(goal.createdAt)}${goal.targetDate ? ` · Target ${formatGoalDate(goal.targetDate)}` : ""}`;
+
     const notes = document.createElement("textarea");
     notes.placeholder = "Add notes...";
     notes.value = goal.notes || "";
@@ -921,6 +979,7 @@ function renderGoals() {
     });
 
     card.appendChild(title);
+    card.appendChild(meta);
     card.appendChild(notes);
     goalList.appendChild(card);
   });
@@ -934,7 +993,8 @@ function createGoal(title) {
     id: crypto.randomUUID(),
     title: trimmed,
     notes: "",
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    targetDate: goalTargetInput.value || ""
   });
 
   saveGoals();
@@ -946,6 +1006,198 @@ function updateGoalNotes(goalId, notes) {
   if (!goal) return;
   goal.notes = notes;
   saveGoals();
+}
+
+function formatGoalDate(value) {
+  if (!value) return "—";
+  const date = typeof value === "number" ? new Date(value) : new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString();
+}
+
+function renderHobbies() {
+  hobbyList.innerHTML = "";
+  hobbyEmpty.hidden = hobbies.length !== 0;
+
+  hobbies.forEach((hobby) => {
+    const card = document.createElement("div");
+    card.className = "hobby-card";
+
+    const title = document.createElement("h3");
+    title.textContent = hobby.title;
+
+    const stars = document.createElement("div");
+    stars.className = "hobby-stars";
+
+    for (let i = 1; i <= 5; i += 1) {
+      const starBtn = document.createElement("button");
+      starBtn.type = "button";
+      starBtn.textContent = "★";
+      starBtn.classList.toggle("is-active", i <= (hobby.rating || 0));
+      starBtn.addEventListener("click", () => updateHobbyRating(hobby.id, i));
+      stars.appendChild(starBtn);
+    }
+
+    const notes = document.createElement("textarea");
+    notes.placeholder = "Add notes...";
+    notes.value = hobby.notes || "";
+    notes.addEventListener("input", (event) => {
+      updateHobbyNotes(hobby.id, event.target.value);
+    });
+
+    card.appendChild(title);
+    card.appendChild(stars);
+    card.appendChild(notes);
+    hobbyList.appendChild(card);
+  });
+}
+
+function createHobby(title) {
+  const trimmed = title.trim();
+  if (!trimmed) return;
+
+  hobbies.unshift({
+    id: crypto.randomUUID(),
+    title: trimmed,
+    notes: "",
+    rating: 0,
+    createdAt: Date.now()
+  });
+
+  saveHobbies();
+  renderHobbies();
+}
+
+function updateHobbyNotes(hobbyId, notes) {
+  const hobby = hobbies.find((item) => item.id === hobbyId);
+  if (!hobby) return;
+  hobby.notes = notes;
+  saveHobbies();
+}
+
+function updateHobbyRating(hobbyId, rating) {
+  const hobby = hobbies.find((item) => item.id === hobbyId);
+  if (!hobby) return;
+  hobby.rating = rating;
+  saveHobbies();
+  renderHobbies();
+}
+
+function renderPlans() {
+  planTree.innerHTML = "";
+  planEmpty.hidden = plans.length !== 0;
+
+  const childrenMap = new Map();
+  plans.forEach((node) => {
+    const key = node.parentId || "root";
+    if (!childrenMap.has(key)) {
+      childrenMap.set(key, []);
+    }
+    childrenMap.get(key).push(node);
+  });
+
+  function buildList(parentId, container) {
+    const nodes = childrenMap.get(parentId) || [];
+    nodes.forEach((node) => {
+      const li = document.createElement("li");
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "plan-node";
+      button.textContent = node.title || "Untitled";
+      button.classList.toggle("is-active", node.id === currentPlanId);
+      button.addEventListener("click", () => selectPlan(node.id));
+
+      li.appendChild(button);
+
+      const childList = document.createElement("ul");
+      buildList(node.id, childList);
+      if (childList.childElementCount > 0) {
+        li.appendChild(childList);
+      }
+
+      container.appendChild(li);
+    });
+  }
+
+  buildList("root", planTree);
+  updatePlanEditor();
+}
+
+function createPlan(title) {
+  const trimmed = title.trim();
+  if (!trimmed) return;
+
+  const node = {
+    id: crypto.randomUUID(),
+    parentId: null,
+    title: trimmed,
+    notes: "",
+    createdAt: Date.now()
+  };
+
+  plans.unshift(node);
+  currentPlanId = node.id;
+  savePlans();
+  renderPlans();
+}
+
+function addChildPlan() {
+  if (!currentPlanId) return;
+  const parent = plans.find((node) => node.id === currentPlanId);
+  if (!parent) return;
+
+  const node = {
+    id: crypto.randomUUID(),
+    parentId: parent.id,
+    title: "New branch",
+    notes: "",
+    createdAt: Date.now()
+  };
+
+  plans.unshift(node);
+  currentPlanId = node.id;
+  savePlans();
+  renderPlans();
+}
+
+function selectPlan(planId) {
+  currentPlanId = planId;
+  renderPlans();
+}
+
+function updatePlanEditor() {
+  const node = plans.find((item) => item.id === currentPlanId);
+  const hasSelection = Boolean(node);
+  planAddChildButton.disabled = !hasSelection;
+  planEditorTitle.disabled = !hasSelection;
+  planEditorNotes.disabled = !hasSelection;
+
+  if (!node) {
+    planSelectedLabel.textContent = "Select a node to edit";
+    planEditorTitle.value = "";
+    planEditorNotes.value = "";
+    return;
+  }
+
+  planSelectedLabel.textContent = "Editing node";
+  planEditorTitle.value = node.title || "";
+  planEditorNotes.value = node.notes || "";
+}
+
+function updatePlanTitle(value) {
+  const node = plans.find((item) => item.id === currentPlanId);
+  if (!node) return;
+  node.title = value;
+  savePlans();
+  renderPlans();
+}
+
+function updatePlanNotes(value) {
+  const node = plans.find((item) => item.id === currentPlanId);
+  if (!node) return;
+  node.notes = value;
+  savePlans();
 }
 
 function toggleHabitToday(habitId) {
@@ -1146,6 +1398,31 @@ goalForm.addEventListener("submit", (event) => {
   event.preventDefault();
   createGoal(goalTitleInput.value);
   goalTitleInput.value = "";
+  goalTargetInput.value = "";
+});
+
+hobbyForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  createHobby(hobbyTitleInput.value);
+  hobbyTitleInput.value = "";
+});
+
+planForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  createPlan(planTitleInput.value);
+  planTitleInput.value = "";
+});
+
+planAddChildButton.addEventListener("click", () => {
+  addChildPlan();
+});
+
+planEditorTitle.addEventListener("input", (event) => {
+  updatePlanTitle(event.target.value);
+});
+
+planEditorNotes.addEventListener("input", (event) => {
+  updatePlanNotes(event.target.value);
 });
 
 document.addEventListener("pointerdown", (event) => {
@@ -1183,12 +1460,14 @@ menuScrim.addEventListener("click", () => {
 
 exportButton.addEventListener("click", () => {
   const payload = {
-    version: 3,
+    version: 5,
     exportedAt: new Date().toISOString(),
     lists,
     schoolData,
     habits,
-    goals
+    goals,
+    hobbies,
+    plans
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json"
@@ -1219,6 +1498,8 @@ importFileInput.addEventListener("change", (event) => {
       const nextSchool = normalizeSchoolData(parsed.schoolData);
       const nextHabits = Array.isArray(parsed.habits) ? parsed.habits : [];
       const nextGoals = Array.isArray(parsed.goals) ? parsed.goals : [];
+      const nextHobbies = Array.isArray(parsed.hobbies) ? parsed.hobbies : [];
+      const nextPlans = Array.isArray(parsed.plans) ? parsed.plans : [];
 
       const confirmed = window.confirm(
         "Importing will replace your current data. Continue?"
@@ -1229,6 +1510,8 @@ importFileInput.addEventListener("change", (event) => {
       schoolData = nextSchool;
       habits = nextHabits;
       goals = nextGoals;
+      hobbies = nextHobbies;
+      plans = nextPlans;
       currentListId = null;
       currentSemesterId = null;
       currentClassId = null;
@@ -1236,9 +1519,13 @@ importFileInput.addEventListener("change", (event) => {
       saveSchoolData();
       saveHabits();
       saveGoals();
+      saveHobbies();
+      savePlans();
       renderLists();
       renderAllHabits();
       renderGoals();
+      renderHobbies();
+      renderPlans();
       setPage("home");
     } catch (error) {
       console.warn("Import failed", error);
@@ -1253,6 +1540,8 @@ importFileInput.addEventListener("change", (event) => {
 renderLists();
 renderAllHabits();
 renderGoals();
+renderHobbies();
+renderPlans();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
