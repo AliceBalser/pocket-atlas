@@ -27,6 +27,7 @@
       <button class="nav-btn" data-target="habits-morning">Habits: Morning</button>
       <button class="nav-btn" data-target="habits-evening">Habits: Evening</button>
       <button class="nav-btn" data-target="habits-lavender">Habits: Lavender</button>
+      <button class="nav-btn" data-target="goals">Goals</button>
     </nav>
     <div class="menu-scrim" id="menu-scrim" hidden></div>
 
@@ -265,6 +266,24 @@
 
         <div class="habit-list" id="habit-list-lavender"></div>
         <p class="empty-state" id="habit-empty-lavender">No habits yet.</p>
+      </section>
+
+      <section id="page-goals" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>Goals</h2>
+            <p class="muted">Create goals and keep notes.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form id="goal-form" class="goal-form" autocomplete="off">
+          <input id="goal-title" type="text" placeholder="Goal title" maxlength="120">
+          <button class="primary" type="submit">Add Goal</button>
+        </form>
+
+        <div class="goal-list" id="goal-list"></div>
+        <p class="empty-state" id="goal-empty">No goals yet.</p>
       </section>
 
       <section id="page-semester" class="page">

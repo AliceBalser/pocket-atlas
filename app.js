@@ -1,6 +1,7 @@
 ﻿const LISTS_STORAGE_KEY = "pocket-atlas-lists-v1";
 const SCHOOL_STORAGE_KEY = "pocket-atlas-school-v1";
 const HABITS_STORAGE_KEY = "pocket-atlas-habits-v1";
+const GOALS_STORAGE_KEY = "pocket-atlas-goals-v1";
 
 const pages = {
   home: document.getElementById("page-home"),
@@ -11,7 +12,8 @@ const pages = {
   class: document.getElementById("page-class"),
   "habits-morning": document.getElementById("page-habits-morning"),
   "habits-evening": document.getElementById("page-habits-evening"),
-  "habits-lavender": document.getElementById("page-habits-lavender")
+  "habits-lavender": document.getElementById("page-habits-lavender"),
+  goals: document.getElementById("page-goals")
 };
 
 const navButtons = document.querySelectorAll("[data-target]");
@@ -68,6 +70,11 @@ const habitEmptyStates = {
   lavender: document.getElementById("habit-empty-lavender")
 };
 
+const goalForm = document.getElementById("goal-form");
+const goalTitleInput = document.getElementById("goal-title");
+const goalList = document.getElementById("goal-list");
+const goalEmpty = document.getElementById("goal-empty");
+
 let deferredInstallPrompt = null;
 let lists = loadLists();
 let currentListId = null;
@@ -75,6 +82,7 @@ let schoolData = loadSchoolData();
 let currentSemesterId = null;
 let currentClassId = null;
 let habits = loadHabits();
+let goals = loadGoals();
 let holdTimer = null;
 let holdTarget = null;
 
@@ -157,6 +165,22 @@ function loadHabits() {
 
 function saveHabits() {
   localStorage.setItem(HABITS_STORAGE_KEY, JSON.stringify(habits));
+}
+
+function loadGoals() {
+  const raw = localStorage.getItem(GOALS_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("Failed to parse goals", error);
+    return [];
+  }
+}
+
+function saveGoals() {
+  localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
 }
 
 function formatUpdated(timestamp) {
@@ -878,6 +902,52 @@ function renderAllHabits() {
   renderHabits("lavender");
 }
 
+function renderGoals() {
+  goalList.innerHTML = "";
+  goalEmpty.hidden = goals.length !== 0;
+
+  goals.forEach((goal) => {
+    const card = document.createElement("div");
+    card.className = "goal-card";
+
+    const title = document.createElement("h3");
+    title.textContent = goal.title;
+
+    const notes = document.createElement("textarea");
+    notes.placeholder = "Add notes...";
+    notes.value = goal.notes || "";
+    notes.addEventListener("input", (event) => {
+      updateGoalNotes(goal.id, event.target.value);
+    });
+
+    card.appendChild(title);
+    card.appendChild(notes);
+    goalList.appendChild(card);
+  });
+}
+
+function createGoal(title) {
+  const trimmed = title.trim();
+  if (!trimmed) return;
+
+  goals.unshift({
+    id: crypto.randomUUID(),
+    title: trimmed,
+    notes: "",
+    createdAt: Date.now()
+  });
+
+  saveGoals();
+  renderGoals();
+}
+
+function updateGoalNotes(goalId, notes) {
+  const goal = goals.find((item) => item.id === goalId);
+  if (!goal) return;
+  goal.notes = notes;
+  saveGoals();
+}
+
 function toggleHabitToday(habitId) {
   const habit = habits.find((item) => item.id === habitId);
   if (!habit) return;
@@ -1072,6 +1142,12 @@ habitForms.forEach((form) => {
   });
 });
 
+goalForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  createGoal(goalTitleInput.value);
+  goalTitleInput.value = "";
+});
+
 document.addEventListener("pointerdown", (event) => {
   const button = event.target.closest(".habit-ring");
   if (!button) return;
@@ -1107,11 +1183,12 @@ menuScrim.addEventListener("click", () => {
 
 exportButton.addEventListener("click", () => {
   const payload = {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     lists,
     schoolData,
-    habits
+    habits,
+    goals
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json"
@@ -1141,6 +1218,7 @@ importFileInput.addEventListener("change", (event) => {
       const nextLists = Array.isArray(parsed.lists) ? parsed.lists : [];
       const nextSchool = normalizeSchoolData(parsed.schoolData);
       const nextHabits = Array.isArray(parsed.habits) ? parsed.habits : [];
+      const nextGoals = Array.isArray(parsed.goals) ? parsed.goals : [];
 
       const confirmed = window.confirm(
         "Importing will replace your current data. Continue?"
@@ -1150,14 +1228,17 @@ importFileInput.addEventListener("change", (event) => {
       lists = nextLists;
       schoolData = nextSchool;
       habits = nextHabits;
+      goals = nextGoals;
       currentListId = null;
       currentSemesterId = null;
       currentClassId = null;
       saveLists();
       saveSchoolData();
       saveHabits();
+      saveGoals();
       renderLists();
       renderAllHabits();
+      renderGoals();
       setPage("home");
     } catch (error) {
       console.warn("Import failed", error);
@@ -1171,6 +1252,7 @@ importFileInput.addEventListener("change", (event) => {
 
 renderLists();
 renderAllHabits();
+renderGoals();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

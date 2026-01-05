@@ -525,6 +525,46 @@ h1 {
   background: var(--accent);
 }
 
+.goal-form {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.goal-form input {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #d6c9bc;
+  font-size: 1rem;
+}
+
+.goal-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.goal-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eadfd2;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.goal-card textarea {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 12px;
+  border: 1px solid #d6c9bc;
+  padding: 10px 12px;
+  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
 .school-grid {
   display: grid;
   gap: 16px;
