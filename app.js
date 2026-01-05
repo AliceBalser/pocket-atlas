@@ -12,6 +12,7 @@ const pages = {
   school: document.getElementById("page-school"),
   semester: document.getElementById("page-semester"),
   class: document.getElementById("page-class"),
+  habits: document.getElementById("page-habits"),
   "habits-morning": document.getElementById("page-habits-morning"),
   "habits-evening": document.getElementById("page-habits-evening"),
   "habits-lavender": document.getElementById("page-habits-lavender"),
@@ -40,6 +41,7 @@ const menuToggle = document.getElementById("menu-toggle");
 const menuClose = document.getElementById("menu-close");
 const sideMenu = document.getElementById("side-menu");
 const menuScrim = document.getElementById("menu-scrim");
+const bodyElement = document.body;
 
 const schoolCards = document.querySelectorAll(".school-card");
 const semesterTitle = document.getElementById("semester-title");
@@ -569,6 +571,17 @@ function setPage(target) {
   }
   if (safeTarget === "class" && !currentClassId) {
     safeTarget = "semester";
+  }
+
+  bodyElement.classList.remove("habit-morning", "habit-evening", "habit-lavender");
+  if (safeTarget === "habits-morning") {
+    bodyElement.classList.add("habit-morning");
+  }
+  if (safeTarget === "habits-evening") {
+    bodyElement.classList.add("habit-evening");
+  }
+  if (safeTarget === "habits-lavender") {
+    bodyElement.classList.add("habit-lavender");
   }
 
   Object.values(pages).forEach((page) => page.classList.remove("is-active"));
@@ -1250,7 +1263,14 @@ navButtons.forEach((button) => {
 
 schoolCards.forEach((card) => {
   card.addEventListener("click", () => {
-    openSemester(card.dataset.semester);
+    if (card.dataset.semester) {
+      openSemester(card.dataset.semester);
+      return;
+    }
+    const target = card.dataset.target;
+    if (target) {
+      handleNavigation(target);
+    }
   });
 });
 

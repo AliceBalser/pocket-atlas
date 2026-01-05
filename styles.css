@@ -26,6 +26,18 @@ body {
   background: radial-gradient(circle at top, #fff7ef, var(--bg)) fixed;
 }
 
+body.habit-morning {
+  background: var(--habit-morning);
+}
+
+body.habit-evening {
+  background: var(--habit-evening);
+}
+
+body.habit-lavender {
+  background: var(--habit-lavender);
+}
+
 .grain {
   position: fixed;
   inset: 0;
@@ -141,19 +153,19 @@ body {
 .habit-page {
   border-radius: 20px;
   padding: 16px;
-  background: #fff;
+  background: transparent;
 }
 
 .habit-morning {
-  background: linear-gradient(180deg, var(--habit-morning), #fff 55%);
+  background: transparent;
 }
 
 .habit-evening {
-  background: linear-gradient(180deg, var(--habit-evening), #fff 55%);
+  background: transparent;
 }
 
 .habit-lavender {
-  background: linear-gradient(180deg, var(--habit-lavender), #fff 55%);
+  background: transparent;
 }
 
 .hero {
@@ -523,6 +535,13 @@ h1 {
 
 .habit-day.is-done {
   background: var(--accent);
+}
+
+.habit-nav {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .goal-form {

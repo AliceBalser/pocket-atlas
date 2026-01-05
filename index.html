@@ -24,9 +24,7 @@
       <button class="nav-btn" data-target="home">Home</button>
       <button class="nav-btn" data-target="lists">Lists</button>
       <button class="nav-btn" data-target="school">School</button>
-      <button class="nav-btn" data-target="habits-morning">Habits: Morning</button>
-      <button class="nav-btn" data-target="habits-evening">Habits: Evening</button>
-      <button class="nav-btn" data-target="habits-lavender">Habits: Lavender</button>
+      <button class="nav-btn" data-target="habits">Habits</button>
       <button class="nav-btn" data-target="goals">Goals</button>
       <button class="nav-btn" data-target="hobbies">Hobbies</button>
       <button class="nav-btn" data-target="plans">Future Plans</button>
@@ -141,13 +139,44 @@
         </div>
       </section>
 
+      <section id="page-habits" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>Habits</h2>
+            <p class="muted">Pick a habit space to focus on.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <div class="school-grid">
+          <button class="card school-card" data-target="habits-morning">
+            <h3>Morning</h3>
+            <p class="muted">Bright start routines</p>
+          </button>
+          <button class="card school-card" data-target="habits-evening">
+            <h3>Evening</h3>
+            <p class="muted">Calm-down routines</p>
+          </button>
+          <button class="card school-card" data-target="habits-lavender">
+            <h3>Lavender</h3>
+            <p class="muted">Long-term rhythms</p>
+          </button>
+        </div>
+      </section>
+
       <section id="page-habits-morning" class="page habit-page habit-morning">
         <div class="todo-header">
           <div>
             <h2>Morning Habits</h2>
             <p class="muted">Bright start routines.</p>
           </div>
-          <button class="ghost" data-target="home">Back to Home</button>
+          <button class="ghost" data-target="habits">Back to Habits</button>
+        </div>
+
+        <div class="habit-nav">
+          <button class="ghost" data-target="habits-morning">Morning</button>
+          <button class="ghost" data-target="habits-evening">Evening</button>
+          <button class="ghost" data-target="habits-lavender">Lavender</button>
         </div>
 
         <form class="habit-form" data-category="morning" autocomplete="off">
@@ -190,7 +219,13 @@
             <h2>Evening Habits</h2>
             <p class="muted">Calm-down routines.</p>
           </div>
-          <button class="ghost" data-target="home">Back to Home</button>
+          <button class="ghost" data-target="habits">Back to Habits</button>
+        </div>
+
+        <div class="habit-nav">
+          <button class="ghost" data-target="habits-morning">Morning</button>
+          <button class="ghost" data-target="habits-evening">Evening</button>
+          <button class="ghost" data-target="habits-lavender">Lavender</button>
         </div>
 
         <form class="habit-form" data-category="evening" autocomplete="off">
@@ -233,7 +268,13 @@
             <h2>Lavender Habits</h2>
             <p class="muted">Long-term rhythms.</p>
           </div>
-          <button class="ghost" data-target="home">Back to Home</button>
+          <button class="ghost" data-target="habits">Back to Habits</button>
+        </div>
+
+        <div class="habit-nav">
+          <button class="ghost" data-target="habits-morning">Morning</button>
+          <button class="ghost" data-target="habits-evening">Evening</button>
+          <button class="ghost" data-target="habits-lavender">Lavender</button>
         </div>
 
         <form class="habit-form" data-category="lavender" autocomplete="off">
