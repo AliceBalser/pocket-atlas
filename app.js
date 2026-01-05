@@ -147,19 +147,51 @@ function renderLists() {
     const title = document.createElement("h4");
     title.textContent = list.title;
 
+    textBlock.appendChild(title);
+
+    if (list.deleted) {
+      const actions = document.createElement("div");
+
+      const recoverBtn = document.createElement("button");
+      recoverBtn.type = "button";
+      recoverBtn.textContent = "Recover";
+      recoverBtn.addEventListener("click", () => recoverList(list.id));
+
+      const confirmBtn = document.createElement("button");
+      confirmBtn.type = "button";
+      confirmBtn.textContent = "Confirm Delete";
+      confirmBtn.addEventListener("click", () => confirmDeleteList(list.id));
+
+      actions.appendChild(recoverBtn);
+      actions.appendChild(confirmBtn);
+
+      li.appendChild(textBlock);
+      li.appendChild(actions);
+      listList.appendChild(li);
+      return;
+    }
+
     const meta = document.createElement("p");
     meta.textContent = `Updated ${formatUpdated(list.updatedAt)}`;
-
-    textBlock.appendChild(title);
     textBlock.appendChild(meta);
+
+    const actions = document.createElement("div");
 
     const openBtn = document.createElement("button");
     openBtn.type = "button";
     openBtn.textContent = "Open";
     openBtn.addEventListener("click", () => openList(list.id));
 
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", () => softDeleteList(list.id));
+
+    actions.appendChild(openBtn);
+    actions.appendChild(deleteBtn);
+
     li.appendChild(textBlock);
-    li.appendChild(openBtn);
+    li.appendChild(actions);
     listList.appendChild(li);
   });
 }
@@ -173,7 +205,8 @@ function createList(title) {
     title: listTitle,
     content: "",
     textSize: "normal",
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
+    deleted: false
   };
 
   lists.unshift(newList);
@@ -184,7 +217,7 @@ function createList(title) {
 
 function openList(id) {
   const list = lists.find((item) => item.id === id);
-  if (!list) return;
+  if (!list || list.deleted) return;
 
   currentListId = id;
   noteEditor.innerHTML = list.content || "";
@@ -197,12 +230,41 @@ function openList(id) {
 function updateCurrentList() {
   if (!currentListId) return;
   const list = lists.find((item) => item.id === currentListId);
-  if (!list) return;
+  if (!list || list.deleted) return;
 
   list.content = noteEditor.innerHTML;
   list.textSize = noteEditor.classList.contains("large") ? "large" : "normal";
   list.updatedAt = Date.now();
 
+  saveLists();
+  renderLists();
+}
+
+function softDeleteList(id) {
+  const index = lists.findIndex((item) => item.id === id);
+  if (index === -1) return;
+  const [list] = lists.splice(index, 1);
+  list.deleted = true;
+  list.deletedAt = Date.now();
+  lists.push(list);
+  saveLists();
+  renderLists();
+}
+
+function recoverList(id) {
+  const index = lists.findIndex((item) => item.id === id);
+  if (index === -1) return;
+  const [list] = lists.splice(index, 1);
+  list.deleted = false;
+  list.deletedAt = null;
+  list.updatedAt = Date.now();
+  lists.unshift(list);
+  saveLists();
+  renderLists();
+}
+
+function confirmDeleteList(id) {
+  lists = lists.filter((item) => item.id !== id);
   saveLists();
   renderLists();
 }
@@ -552,11 +614,62 @@ listForm.addEventListener("submit", (event) => {
 
 noteEditor.addEventListener("input", updateCurrentList);
 
+noteEditor.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  const selection = window.getSelection();
+  if (!selection || !selection.anchorNode) return;
+
+  const anchor = selection.anchorNode;
+  const block = anchor.nodeType === Node.ELEMENT_NODE
+    ? anchor.closest("div")
+    : anchor.parentElement
+    ? anchor.parentElement.closest("div")
+    : null;
+
+  if (block && noteEditor.contains(block)) {
+    const check = block.querySelector(".check");
+    event.preventDefault();
+
+    if (check) {
+      const isCircle = check.classList.contains("check-circle");
+      const checkClass = isCircle ? "check check-circle" : "check";
+      const newBlock = document.createElement("div");
+      newBlock.innerHTML = `<span class="${checkClass}" contenteditable="false" data-checked="false"></span>&nbsp;`;
+      block.after(newBlock);
+      placeCaretAtEnd(newBlock, selection);
+      return;
+    }
+
+    const newBlock = document.createElement("div");
+    newBlock.innerHTML = "&nbsp;";
+    block.after(newBlock);
+    placeCaretAtEnd(newBlock, selection);
+    return;
+  }
+
+  event.preventDefault();
+  const newBlock = document.createElement("div");
+  newBlock.innerHTML = "&nbsp;";
+  noteEditor.appendChild(newBlock);
+  placeCaretAtEnd(newBlock, selection);
+});
+
+function placeCaretAtEnd(element, selection) {
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 noteEditor.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
   if (!target.classList.contains("check")) return;
   target.classList.toggle("checked");
+  if (!target.classList.contains("check-circle")) {
+    reorderSquareChecks();
+  }
   updateCurrentList();
 });
 
@@ -574,6 +687,34 @@ textBold.addEventListener("click", () => {
 
 insertSquare.addEventListener("click", () => insertCheck("square"));
 insertCircle.addEventListener("click", () => insertCheck("circle"));
+
+function reorderSquareChecks() {
+  const squareBlocks = Array.from(
+    noteEditor.querySelectorAll(".check:not(.check-circle)")
+  )
+    .map((check) => check.closest("div"))
+    .filter(Boolean);
+
+  if (squareBlocks.length < 2) return;
+
+  const unchecked = [];
+  const checked = [];
+
+  squareBlocks.forEach((block) => {
+    const check = block.querySelector(".check:not(.check-circle)");
+    if (!check) return;
+    if (check.classList.contains("checked")) {
+      checked.push(block);
+    } else {
+      unchecked.push(block);
+    }
+  });
+
+  const ordered = unchecked.concat(checked);
+  ordered.forEach((block) => {
+    noteEditor.appendChild(block);
+  });
+}
 
 classForm.addEventListener("submit", (event) => {
   event.preventDefault();
