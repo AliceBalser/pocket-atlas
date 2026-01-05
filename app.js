@@ -1,5 +1,6 @@
-const LISTS_STORAGE_KEY = "pocket-atlas-lists-v1";
+﻿const LISTS_STORAGE_KEY = "pocket-atlas-lists-v1";
 const SCHOOL_STORAGE_KEY = "pocket-atlas-school-v1";
+const HABITS_STORAGE_KEY = "pocket-atlas-habits-v1";
 
 const pages = {
   home: document.getElementById("page-home"),
@@ -7,7 +8,10 @@ const pages = {
   note: document.getElementById("page-note"),
   school: document.getElementById("page-school"),
   semester: document.getElementById("page-semester"),
-  class: document.getElementById("page-class")
+  class: document.getElementById("page-class"),
+  "habits-morning": document.getElementById("page-habits-morning"),
+  "habits-evening": document.getElementById("page-habits-evening"),
+  "habits-lavender": document.getElementById("page-habits-lavender")
 };
 
 const navButtons = document.querySelectorAll("[data-target]");
@@ -52,18 +56,35 @@ const assignmentGradeInput = document.getElementById("assignment-grade");
 const assignmentTableBody = document.getElementById("assignment-table-body");
 const assignmentEmpty = document.getElementById("assignment-empty");
 
+const habitForms = document.querySelectorAll(".habit-form");
+const habitListContainers = {
+  morning: document.getElementById("habit-list-morning"),
+  evening: document.getElementById("habit-list-evening"),
+  lavender: document.getElementById("habit-list-lavender")
+};
+const habitEmptyStates = {
+  morning: document.getElementById("habit-empty-morning"),
+  evening: document.getElementById("habit-empty-evening"),
+  lavender: document.getElementById("habit-empty-lavender")
+};
+
 let deferredInstallPrompt = null;
 let lists = loadLists();
 let currentListId = null;
 let schoolData = loadSchoolData();
 let currentSemesterId = null;
 let currentClassId = null;
+let habits = loadHabits();
+let holdTimer = null;
+let holdTarget = null;
 
 const semesterNames = {
   "3rd-year-winter": "3rd Year Winter",
   "4th-year-fall": "4th Year Fall",
   "4th-year-winter": "4th Year Winter"
 };
+
+const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function createEmptySchoolData() {
   return {
@@ -122,11 +143,151 @@ function saveSchoolData() {
   localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(schoolData));
 }
 
+function loadHabits() {
+  const raw = localStorage.getItem(HABITS_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("Failed to parse habits", error);
+    return [];
+  }
+}
+
+function saveHabits() {
+  localStorage.setItem(HABITS_STORAGE_KEY, JSON.stringify(habits));
+}
+
 function formatUpdated(timestamp) {
   if (!timestamp) return "Never";
   return new Date(timestamp).toLocaleDateString();
 }
 
+function formatDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseDateKey(key) {
+  if (!key) return null;
+  const [year, month, day] = key.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(year, month - 1, day);
+}
+
+function toLocalMidnight(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date, amount) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+}
+
+function daysBetween(startDate, endDate) {
+  const start = toLocalMidnight(startDate);
+  const end = toLocalMidnight(endDate);
+  return Math.round((end - start) / (1000 * 60 * 60 * 24));
+}
+
+function isDueOnDate(habit, date) {
+  const schedule = habit.schedule || { type: "daily" };
+  const startDate = parseDateKey(habit.createdAt) || toLocalMidnight(date);
+  const diff = daysBetween(startDate, date);
+  if (diff < 0) return false;
+
+  switch (schedule.type) {
+    case "days":
+      return Array.isArray(schedule.daysOfWeek)
+        ? schedule.daysOfWeek.includes(date.getDay())
+        : false;
+    case "every-days":
+      return schedule.interval > 0 ? diff % schedule.interval === 0 : false;
+    case "every-weeks":
+      return schedule.interval > 0 ? diff % (schedule.interval * 7) === 0 : false;
+    case "daily":
+    default:
+      return true;
+  }
+}
+
+function getCalendarDates(days = 28) {
+  const today = toLocalMidnight(new Date());
+  const dates = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    dates.push(addDays(today, -i));
+  }
+  return dates;
+}
+
+function computeCompletionRate(habit, days = 7) {
+  const today = toLocalMidnight(new Date());
+  let due = 0;
+  let done = 0;
+
+  for (let i = 0; i < days; i += 1) {
+    const date = addDays(today, -i);
+    if (!isDueOnDate(habit, date)) continue;
+    due += 1;
+    if (habit.completions && habit.completions[formatDateKey(date)]) {
+      done += 1;
+    }
+  }
+
+  return due === 0 ? 0 : done / due;
+}
+
+function computeStreaks(habit) {
+  const startDate = parseDateKey(habit.createdAt);
+  if (!startDate) return { current: 0, longest: 0 };
+  const today = toLocalMidnight(new Date());
+  let longest = 0;
+  let running = 0;
+
+  for (let date = toLocalMidnight(startDate); date <= today; date = addDays(date, 1)) {
+    if (!isDueOnDate(habit, date)) continue;
+    const key = formatDateKey(date);
+    if (habit.completions && habit.completions[key]) {
+      running += 1;
+      if (running > longest) longest = running;
+    } else {
+      running = 0;
+    }
+  }
+
+  let current = 0;
+  for (let date = today; date >= startDate; date = addDays(date, -1)) {
+    if (!isDueOnDate(habit, date)) continue;
+    const key = formatDateKey(date);
+    if (habit.completions && habit.completions[key]) {
+      current += 1;
+    } else {
+      break;
+    }
+  }
+
+  return { current, longest };
+}
+
+function formatScheduleSummary(habit) {
+  const schedule = habit.schedule || { type: "daily" };
+  if (schedule.type === "days") {
+    const days = Array.isArray(schedule.daysOfWeek) ? schedule.daysOfWeek : [];
+    if (days.length === 0) return "Specific days";
+    return days.map((day) => dayLabels[day]).join(", ");
+  }
+  if (schedule.type === "every-days") {
+    return `Every ${schedule.interval} days`;
+  }
+  if (schedule.type === "every-weeks") {
+    return `Every ${schedule.interval} weeks`;
+  }
+  return "Daily";
+}
 function renderLists() {
   listList.innerHTML = "";
 
@@ -582,6 +743,180 @@ function removeAssignment(assignmentId) {
   );
   renderClass();
 }
+function updateHabitForm(form) {
+  const schedule = form.querySelector(".habit-schedule").value;
+  const daysRow = form.querySelector(".habit-days");
+  const intervalDays = form.querySelector(".habit-interval-days");
+  const intervalWeeks = form.querySelector(".habit-interval-weeks");
+
+  daysRow.style.display = schedule === "days" ? "flex" : "none";
+  intervalDays.classList.toggle("is-active", schedule === "every-days");
+  intervalWeeks.classList.toggle("is-active", schedule === "every-weeks");
+}
+
+function createHabitFromForm(form) {
+  const name = form.querySelector(".habit-name").value.trim();
+  if (!name) return;
+
+  const scheduleType = form.querySelector(".habit-schedule").value;
+  const daysSelected = Array.from(form.querySelectorAll(".habit-days input:checked"))
+    .map((input) => Number(input.dataset.day))
+    .filter((day) => !Number.isNaN(day));
+
+  const dayDefault = [new Date().getDay()];
+  const intervalInput = scheduleType === "every-weeks"
+    ? form.querySelector(".habit-interval-weeks .habit-interval-input")
+    : form.querySelector(".habit-interval-days .habit-interval-input");
+  const intervalValue = Number(intervalInput ? intervalInput.value : 1) || 1;
+
+  let schedule = { type: scheduleType };
+  if (scheduleType === "days") {
+    schedule = { type: "days", daysOfWeek: daysSelected.length ? daysSelected : dayDefault };
+  } else if (scheduleType === "every-days") {
+    schedule = { type: "every-days", interval: Math.max(1, intervalValue) };
+  } else if (scheduleType === "every-weeks") {
+    schedule = { type: "every-weeks", interval: Math.max(1, intervalValue) };
+  }
+
+  const habit = {
+    id: crypto.randomUUID(),
+    name,
+    category: form.dataset.category,
+    createdAt: formatDateKey(new Date()),
+    schedule,
+    completions: {}
+  };
+
+  habits.unshift(habit);
+  saveHabits();
+  renderHabits(form.dataset.category);
+
+  form.reset();
+  updateHabitForm(form);
+}
+
+function renderHabits(category) {
+  const container = habitListContainers[category];
+  if (!container) return;
+  container.innerHTML = "";
+
+  const filtered = habits.filter((habit) => habit.category === category);
+  const emptyState = habitEmptyStates[category];
+  if (emptyState) {
+    emptyState.hidden = filtered.length !== 0;
+  }
+
+  filtered.forEach((habit) => {
+    const card = document.createElement("div");
+    card.className = "habit-card";
+
+    const header = document.createElement("div");
+    header.className = "habit-header";
+
+    const ring = document.createElement("button");
+    ring.type = "button";
+    ring.className = "habit-ring";
+    ring.dataset.habitId = habit.id;
+
+    const today = toLocalMidnight(new Date());
+    const todayKey = formatDateKey(today);
+    const doneToday = habit.completions && habit.completions[todayKey];
+    if (doneToday) {
+      ring.classList.add("is-done");
+    }
+
+    const rate = computeCompletionRate(habit, 7);
+    ring.style.setProperty("--progress", rate);
+    ring.title = "Hold 0.5s to toggle today";
+
+    const titleWrap = document.createElement("div");
+    const title = document.createElement("div");
+    title.className = "habit-title";
+    title.textContent = habit.name;
+
+    const meta = document.createElement("div");
+    meta.className = "habit-meta";
+    meta.textContent = formatScheduleSummary(habit);
+
+    titleWrap.appendChild(title);
+    titleWrap.appendChild(meta);
+
+    header.appendChild(ring);
+    header.appendChild(titleWrap);
+
+    const streaks = computeStreaks(habit);
+    const streakRow = document.createElement("div");
+    streakRow.className = "habit-streaks";
+    streakRow.innerHTML = `<span>Streak ${streaks.current}</span><span>Best ${streaks.longest}</span>`;
+
+    const calendar = document.createElement("div");
+    calendar.className = "habit-calendar";
+    const dates = getCalendarDates(28);
+    dates.forEach((date) => {
+      const cell = document.createElement("div");
+      cell.className = "habit-day";
+      if (isDueOnDate(habit, date)) {
+        cell.classList.add("is-due");
+      }
+      const key = formatDateKey(date);
+      if (habit.completions && habit.completions[key]) {
+        cell.classList.add("is-done");
+      }
+      calendar.appendChild(cell);
+    });
+
+    card.appendChild(header);
+    card.appendChild(streakRow);
+    card.appendChild(calendar);
+    container.appendChild(card);
+  });
+}
+
+function renderAllHabits() {
+  renderHabits("morning");
+  renderHabits("evening");
+  renderHabits("lavender");
+}
+
+function toggleHabitToday(habitId) {
+  const habit = habits.find((item) => item.id === habitId);
+  if (!habit) return;
+
+  const today = toLocalMidnight(new Date());
+  if (!isDueOnDate(habit, today)) return;
+
+  const key = formatDateKey(today);
+  habit.completions = habit.completions || {};
+  if (habit.completions[key]) {
+    delete habit.completions[key];
+  } else {
+    habit.completions[key] = true;
+  }
+
+  saveHabits();
+  renderHabits(habit.category);
+}
+
+function startHold(button) {
+  if (!button) return;
+  holdTarget = button;
+  holdTarget.classList.add("is-holding");
+  holdTimer = setTimeout(() => {
+    toggleHabitToday(button.dataset.habitId);
+    clearHold();
+  }, 500);
+}
+
+function clearHold() {
+  if (holdTimer) {
+    clearTimeout(holdTimer);
+  }
+  if (holdTarget) {
+    holdTarget.classList.remove("is-holding");
+  }
+  holdTimer = null;
+  holdTarget = null;
+}
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
@@ -726,6 +1061,38 @@ assignmentForm.addEventListener("submit", (event) => {
   addAssignment();
 });
 
+habitForms.forEach((form) => {
+  updateHabitForm(form);
+  form.querySelector(".habit-schedule").addEventListener("change", () => {
+    updateHabitForm(form);
+  });
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    createHabitFromForm(form);
+  });
+});
+
+document.addEventListener("pointerdown", (event) => {
+  const button = event.target.closest(".habit-ring");
+  if (!button) return;
+  event.preventDefault();
+  startHold(button);
+});
+
+document.addEventListener("pointerup", () => {
+  clearHold();
+});
+
+document.addEventListener("pointercancel", () => {
+  clearHold();
+});
+
+document.addEventListener("pointerout", (event) => {
+  if (holdTarget && event.target === holdTarget) {
+    clearHold();
+  }
+});
+
 menuToggle.addEventListener("click", () => {
   openMenu();
 });
@@ -740,10 +1107,11 @@ menuScrim.addEventListener("click", () => {
 
 exportButton.addEventListener("click", () => {
   const payload = {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     lists,
-    schoolData
+    schoolData,
+    habits
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json"
@@ -772,6 +1140,7 @@ importFileInput.addEventListener("change", (event) => {
       const parsed = JSON.parse(reader.result);
       const nextLists = Array.isArray(parsed.lists) ? parsed.lists : [];
       const nextSchool = normalizeSchoolData(parsed.schoolData);
+      const nextHabits = Array.isArray(parsed.habits) ? parsed.habits : [];
 
       const confirmed = window.confirm(
         "Importing will replace your current data. Continue?"
@@ -780,12 +1149,15 @@ importFileInput.addEventListener("change", (event) => {
 
       lists = nextLists;
       schoolData = nextSchool;
+      habits = nextHabits;
       currentListId = null;
       currentSemesterId = null;
       currentClassId = null;
       saveLists();
       saveSchoolData();
+      saveHabits();
       renderLists();
+      renderAllHabits();
       setPage("home");
     } catch (error) {
       console.warn("Import failed", error);
@@ -798,6 +1170,7 @@ importFileInput.addEventListener("change", (event) => {
 });
 
 renderLists();
+renderAllHabits();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

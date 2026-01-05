@@ -7,6 +7,9 @@
   --accent: #2c6e6d;
   --accent-soft: #cfe3df;
   --card: #fffaf4;
+  --habit-morning: #d7ecff;
+  --habit-evening: #dbe7d2;
+  --habit-lavender: #e7def8;
   --shadow: 0 20px 45px rgba(40, 31, 24, 0.15);
   --radius: 18px;
 }
@@ -133,6 +136,24 @@ body {
 
 .page.is-active {
   display: block;
+}
+
+.habit-page {
+  border-radius: 20px;
+  padding: 16px;
+  background: #fff;
+}
+
+.habit-morning {
+  background: linear-gradient(180deg, var(--habit-morning), #fff 55%);
+}
+
+.habit-evening {
+  background: linear-gradient(180deg, var(--habit-evening), #fff 55%);
+}
+
+.habit-lavender {
+  background: linear-gradient(180deg, var(--habit-lavender), #fff 55%);
 }
 
 .hero {
@@ -366,6 +387,144 @@ h1 {
   color: var(--muted);
 }
 
+.habit-form {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid #eadfd2;
+}
+
+.habit-form input,
+.habit-form select {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d6c9bc;
+  font-size: 0.95rem;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+}
+
+.habit-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.habit-days label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.habit-interval {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  color: var(--muted);
+}
+
+.habit-interval input {
+  max-width: 80px;
+}
+
+.habit-interval.is-active {
+  display: inline-flex;
+}
+
+.habit-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.habit-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eadfd2;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.habit-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.habit-ring {
+  --progress: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: conic-gradient(var(--accent) calc(var(--progress) * 1turn), #eadfd2 0);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.habit-ring::after {
+  content: "";
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.habit-ring.is-done::after {
+  background: var(--accent-soft);
+}
+
+.habit-ring.is-holding {
+  transform: scale(0.96);
+}
+
+.habit-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.habit-meta {
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.habit-streaks {
+  display: flex;
+  gap: 12px;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.habit-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.habit-day {
+  height: 14px;
+  border-radius: 4px;
+  background: #f0e7dd;
+}
+
+.habit-day.is-due {
+  outline: 1px solid rgba(44, 110, 109, 0.3);
+}
+
+.habit-day.is-done {
+  background: var(--accent);
+}
+
 .school-grid {
   display: grid;
   gap: 16px;
@@ -496,6 +655,10 @@ h1 {
 
   .school-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .habit-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

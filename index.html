@@ -24,6 +24,9 @@
       <button class="nav-btn" data-target="home">Home</button>
       <button class="nav-btn" data-target="lists">Lists</button>
       <button class="nav-btn" data-target="school">School</button>
+      <button class="nav-btn" data-target="habits-morning">Habits: Morning</button>
+      <button class="nav-btn" data-target="habits-evening">Habits: Evening</button>
+      <button class="nav-btn" data-target="habits-lavender">Habits: Lavender</button>
     </nav>
     <div class="menu-scrim" id="menu-scrim" hidden></div>
 
@@ -133,6 +136,135 @@
             <p class="muted">Open semester</p>
           </button>
         </div>
+      </section>
+
+      <section id="page-habits-morning" class="page habit-page habit-morning">
+        <div class="todo-header">
+          <div>
+            <h2>Morning Habits</h2>
+            <p class="muted">Bright start routines.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form class="habit-form" data-category="morning" autocomplete="off">
+          <input class="habit-name" type="text" placeholder="Habit name" maxlength="80">
+          <select class="habit-schedule">
+            <option value="daily">Daily</option>
+            <option value="days">Specific days</option>
+            <option value="every-days">Every X days</option>
+            <option value="every-weeks">Every X weeks</option>
+          </select>
+          <div class="habit-days">
+            <label><input type="checkbox" data-day="1">Mon</label>
+            <label><input type="checkbox" data-day="2">Tue</label>
+            <label><input type="checkbox" data-day="3">Wed</label>
+            <label><input type="checkbox" data-day="4">Thu</label>
+            <label><input type="checkbox" data-day="5">Fri</label>
+            <label><input type="checkbox" data-day="6">Sat</label>
+            <label><input type="checkbox" data-day="0">Sun</label>
+          </div>
+          <div class="habit-interval habit-interval-days">
+            <span>Every</span>
+            <input class="habit-interval-input" type="number" min="1" max="30" value="2">
+            <span>days</span>
+          </div>
+          <div class="habit-interval habit-interval-weeks">
+            <span>Every</span>
+            <input class="habit-interval-input" type="number" min="1" max="12" value="2">
+            <span>weeks</span>
+          </div>
+          <button class="primary" type="submit">Add Habit</button>
+        </form>
+
+        <div class="habit-list" id="habit-list-morning"></div>
+        <p class="empty-state" id="habit-empty-morning">No habits yet.</p>
+      </section>
+
+      <section id="page-habits-evening" class="page habit-page habit-evening">
+        <div class="todo-header">
+          <div>
+            <h2>Evening Habits</h2>
+            <p class="muted">Calm-down routines.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form class="habit-form" data-category="evening" autocomplete="off">
+          <input class="habit-name" type="text" placeholder="Habit name" maxlength="80">
+          <select class="habit-schedule">
+            <option value="daily">Daily</option>
+            <option value="days">Specific days</option>
+            <option value="every-days">Every X days</option>
+            <option value="every-weeks">Every X weeks</option>
+          </select>
+          <div class="habit-days">
+            <label><input type="checkbox" data-day="1">Mon</label>
+            <label><input type="checkbox" data-day="2">Tue</label>
+            <label><input type="checkbox" data-day="3">Wed</label>
+            <label><input type="checkbox" data-day="4">Thu</label>
+            <label><input type="checkbox" data-day="5">Fri</label>
+            <label><input type="checkbox" data-day="6">Sat</label>
+            <label><input type="checkbox" data-day="0">Sun</label>
+          </div>
+          <div class="habit-interval habit-interval-days">
+            <span>Every</span>
+            <input class="habit-interval-input" type="number" min="1" max="30" value="2">
+            <span>days</span>
+          </div>
+          <div class="habit-interval habit-interval-weeks">
+            <span>Every</span>
+            <input class="habit-interval-input" type="number" min="1" max="12" value="2">
+            <span>weeks</span>
+          </div>
+          <button class="primary" type="submit">Add Habit</button>
+        </form>
+
+        <div class="habit-list" id="habit-list-evening"></div>
+        <p class="empty-state" id="habit-empty-evening">No habits yet.</p>
+      </section>
+
+      <section id="page-habits-lavender" class="page habit-page habit-lavender">
+        <div class="todo-header">
+          <div>
+            <h2>Lavender Habits</h2>
+            <p class="muted">Long-term rhythms.</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <form class="habit-form" data-category="lavender" autocomplete="off">
+          <input class="habit-name" type="text" placeholder="Habit name" maxlength="80">
+          <select class="habit-schedule">
+            <option value="daily">Daily</option>
+            <option value="days">Specific days</option>
+            <option value="every-days">Every X days</option>
+            <option value="every-weeks">Every X weeks</option>
+          </select>
+          <div class="habit-days">
+            <label><input type="checkbox" data-day="1">Mon</label>
+            <label><input type="checkbox" data-day="2">Tue</label>
+            <label><input type="checkbox" data-day="3">Wed</label>
+            <label><input type="checkbox" data-day="4">Thu</label>
+            <label><input type="checkbox" data-day="5">Fri</label>
+            <label><input type="checkbox" data-day="6">Sat</label>
+            <label><input type="checkbox" data-day="0">Sun</label>
+          </div>
+          <div class="habit-interval habit-interval-days">
+            <span>Every</span>
+            <input class="habit-interval-input" type="number" min="1" max="30" value="2">
+            <span>days</span>
+          </div>
+          <div class="habit-interval habit-interval-weeks">
+            <span>Every</span>
+            <input class="habit-interval-input" type="number" min="1" max="12" value="2">
+            <span>weeks</span>
+          </div>
+          <button class="primary" type="submit">Add Habit</button>
+        </form>
+
+        <div class="habit-list" id="habit-list-lavender"></div>
+        <p class="empty-state" id="habit-empty-lavender">No habits yet.</p>
       </section>
 
       <section id="page-semester" class="page">
