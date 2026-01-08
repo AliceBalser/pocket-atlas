@@ -2,7 +2,7 @@
   color-scheme: light;
   --bg: #215536;
   --bg-deep: #215536;
-  --ink: #f6efe8;
+  --ink: #D7E7FA;
   --muted: #D7E7FA;
   --accent: #D7E7FA;
   --accent-soft: #e8ddd0;
@@ -33,12 +33,10 @@ body.habit-morning {
 
 body.habit-evening {
   background: var(--habit-evening);
-  color: var(--bg);
 }
 
 body.habit-lavender {
   background: var(--habit-lavender);
-  color: var(--bg);
 }
 
 .grain {
@@ -160,23 +158,6 @@ body.habit-lavender {
   color: var(--ink);
 }
 
-body.habit-evening .habit-page,
-body.habit-lavender .habit-page {
-  color: var(--bg);
-}
-
-body.habit-evening .habit-page .muted,
-body.habit-lavender .habit-page .muted {
-  color: var(--bg);
-  opacity: 0.85;
-}
-
-body.habit-evening .habit-card,
-body.habit-evening .habit-form,
-body.habit-lavender .habit-card,
-body.habit-lavender .habit-form {
-  color: var(--ink);
-}
 
 .habit-morning {
   background: transparent;
@@ -304,7 +285,7 @@ h1 {
   gap: 10px;
 }
 
-.todo-form input {\n  padding: 12px 14px;\n  border-radius: 14px;\n  border: 1px solid var(--border);\n  font-size: 1rem;\n  background: #f6efe8;\n  color: #36291F;\n}
+.todo-form input {\n  padding: 12px 14px;\n  border-radius: 14px;\n  border: 1px solid var(--border);\n  font-size: 1rem;\n  background: #f6efe8;\n  color: var(--ink);\n}
 
 .todo-stats {
   margin-top: 14px;
@@ -431,7 +412,7 @@ h1 {
   color: var(--ink);
 }
 
-.habit-form input,\n.habit-form select {\n  padding: 10px 12px;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  font-size: 0.95rem;\n  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;\n  background: #f6efe8;\n  color: #36291F;\n}
+.habit-form input,\n.habit-form select {\n  padding: 10px 12px;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  font-size: 0.95rem;\n  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;\n  background: #f6efe8;\n  color: var(--ink);\n}
 
 .habit-days {
   display: flex;
@@ -572,7 +553,7 @@ h1 {
   grid-template-columns: 1fr auto;
 }
 
-.goal-form input {\n  padding: 12px 14px;\n  border-radius: 14px;\n  border: 1px solid var(--border);\n  font-size: 1rem;\n  background: #f6efe8;\n  color: #36291F;\n}
+.goal-form input {\n  padding: 12px 14px;\n  border-radius: 14px;\n  border: 1px solid var(--border);\n  font-size: 1rem;\n  background: #f6efe8;\n  color: var(--ink);\n}
 
 .goal-list {
   margin-top: 18px;
@@ -595,7 +576,7 @@ h1 {
   font-size: 0.85rem;
 }
 
-.goal-card textarea {\n  width: 100%;\n  min-height: 120px;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  padding: 10px 12px;\n  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;\n  font-size: 0.95rem;\n  resize: vertical;\n  background: #f6efe8;\n  color: #36291F;\n}
+.goal-card textarea {\n  width: 100%;\n  min-height: 120px;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  padding: 10px 12px;\n  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;\n  font-size: 0.95rem;\n  resize: vertical;\n  background: #f6efe8;\n  color: var(--ink);\n}
 
 .hobby-list {
   margin-top: 18px;
@@ -632,7 +613,7 @@ h1 {
   color: var(--bg);
 }
 
-.hobby-card textarea {\n  width: 100%;\n  min-height: 120px;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  padding: 10px 12px;\n  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;\n  font-size: 0.95rem;\n  resize: vertical;\n  background: #f6efe8;\n  color: #36291F;\n}
+.hobby-card textarea {\n  width: 100%;\n  min-height: 120px;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  padding: 10px 12px;\n  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;\n  font-size: 0.95rem;\n  resize: vertical;\n  background: #f6efe8;\n  color: var(--ink);\n}
 
 .plan-form {
   grid-template-columns: 1fr auto auto;
@@ -693,7 +674,7 @@ h1 {
   font-size: 0.85rem;
 }
 
-.plan-editor input,\n.plan-editor textarea {\n  width: 100%;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  padding: 10px 12px;\n  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;\n  font-size: 0.95rem;\n  background: #f6efe8;\n  color: #36291F;\n}
+.plan-editor input,\n.plan-editor textarea {\n  width: 100%;\n  border-radius: 12px;\n  border: 1px solid var(--border);\n  padding: 10px 12px;\n  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;\n  font-size: 0.95rem;\n  background: #f6efe8;\n  color: var(--ink);\n}
 
 .plan-editor textarea {
   min-height: 140px;
