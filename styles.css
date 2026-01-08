@@ -1,14 +1,14 @@
 :root {
   color-scheme: light;
-  --bg: #336748;
-  --bg-deep: #336748;
+  --bg: #215536;
+  --bg-deep: #215536;
   --ink: #f6efe8;
   --muted: #D7E7FA;
   --accent: #D7E7FA;
   --accent-soft: #e8ddd0;
-  --card: #85b551;
-  --border: #85b551;
-  --habit-morning: #336748;
+  --card: #689438;
+  --border: #689438;
+  --habit-morning: #215536;
   --habit-evening: #336748;
   --habit-lavender: #336748;
   --shadow: 0 20px 45px rgba(40, 31, 24, 0.15);
