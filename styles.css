@@ -2,7 +2,7 @@
   color-scheme: light;
   --bg: #f6efe8;
   --bg-deep: #e8ddd0;
-  --ink: #1f1a16;
+  --ink: #336748;
   --muted: #5c5249;
   --accent: #2c6e6d;
   --accent-soft: #cfe3df;
@@ -233,6 +233,8 @@ h1 {
   display: grid;
   gap: 12px;
   font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  background: #36291F;
+  color: var(--bg);
 }
 
 .preview ul {

@@ -428,8 +428,8 @@ function renderLists() {
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", () => softDeleteList(list.id));
 
-    actions.appendChild(openBtn);
     actions.appendChild(deleteBtn);
+    actions.appendChild(openBtn);
 
     li.appendChild(textBlock);
     li.appendChild(actions);
@@ -698,12 +698,20 @@ function renderSemester() {
     openBtn.addEventListener("click", () => openClass(item.id));
     openCell.appendChild(openBtn);
 
+    const deleteCell = document.createElement("td");
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", () => deleteClass(item.id));
+    deleteCell.appendChild(deleteBtn);
+
     row.appendChild(codeCell);
     row.appendChild(nameCell);
     row.appendChild(gradeCell);
     row.appendChild(weightCell);
     row.appendChild(crnCell);
     row.appendChild(openCell);
+    row.appendChild(deleteCell);
 
     classTableBody.appendChild(row);
   });
@@ -833,6 +841,16 @@ function removeAssignment(assignmentId) {
     (item) => item.id !== assignmentId
   );
   renderClass();
+}
+
+function deleteClass(classId) {
+  const semester = getSemester(currentSemesterId);
+  if (!semester) return;
+  semester.classes = semester.classes.filter((item) => item.id !== classId);
+  if (currentClassId === classId) {
+    currentClassId = null;
+  }
+  renderSemester();
 }
 function updateHabitForm(form) {
   const schedule = form.querySelector(".habit-schedule").value;
