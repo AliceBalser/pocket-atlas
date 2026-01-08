@@ -668,6 +668,7 @@ function renderSemester() {
   classStats.textContent = `${classes.length} / 6 classes`;
   classEmpty.hidden = classes.length !== 0;
   classForm.querySelector("button").disabled = classes.length >= 6;
+  classForm.hidden = classes.length >= 6;
 
   classes.forEach((item) => {
     const stats = computeClassStats(item);
@@ -761,6 +762,12 @@ function renderClass() {
   const stats = computeClassStats(classItem);
   classGrade.textContent = stats.grade === null ? "--" : `${stats.grade.toFixed(1)}%`;
   classWeight.textContent = `${stats.weight.toFixed(1)}%`;
+
+  const weightTotal = classItem.assignments.reduce(
+    (sum, assignment) => sum + (Number(assignment.weight) || 0),
+    0
+  );
+  assignmentForm.hidden = weightTotal >= 100;
 
   assignmentTableBody.innerHTML = "";
   assignmentEmpty.hidden = classItem.assignments.length !== 0;
