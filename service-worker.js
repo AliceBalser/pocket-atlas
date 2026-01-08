@@ -1,11 +1,13 @@
-const CACHE_NAME = "pocket-atlas-v22";
+const CACHE_NAME = "pocket-atlas-v23";
 const ASSETS = [
   ".",
   "index.html",
   "styles.css",
   "app.js",
   "manifest.json",
-  "icon.svg"
+  "icon.svg",
+  "icon-192.png",
+  "icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
