@@ -1,4 +1,4 @@
-const CACHE_NAME = "pocket-atlas-v21";
+const CACHE_NAME = "pocket-atlas-v22";
 const ASSETS = [
   ".",
   "index.html",

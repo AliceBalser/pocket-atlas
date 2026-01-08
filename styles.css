@@ -635,17 +635,15 @@ h1 {
 
 .hobby-stars button {
   border: none;
-  background: var(--card);
+  background: transparent;
   color: var(--dark-blue);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 1rem;
+  padding: 0;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 
 .hobby-stars button.is-active {
-  background: var(--accent);
-  color: var(--dark-blue);
+  color: var(--accent);
 }
 
 .hobby-card textarea {
