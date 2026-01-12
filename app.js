@@ -674,8 +674,10 @@ function renderSemester() {
   const classes = semester.classes;
   classStats.textContent = `${classes.length} / 6 classes`;
   classEmpty.hidden = classes.length !== 0;
-  classForm.querySelector("button").disabled = classes.length >= 6 || semester.locked;
-  classForm.hidden = classes.length >= 6 || semester.locked;
+  const lockReached = classes.length >= 6 || semester.locked;
+  classForm.querySelector("button").disabled = lockReached;
+  classForm.hidden = lockReached;
+  classForm.style.display = lockReached ? "none" : "grid";
   semesterLockButton.hidden = semester.locked || classes.length === 0;
 
   classes.forEach((item) => {
