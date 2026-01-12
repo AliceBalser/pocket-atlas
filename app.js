@@ -379,7 +379,12 @@ function renderLists() {
 
   listStats.textContent = `${lists.length} list${lists.length === 1 ? "" : "s"}`;
 
-  lists.forEach((list) => {
+  const activeLists = lists
+    .filter((item) => !item.deleted)
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const deletedLists = lists.filter((item) => item.deleted);
+
+  [...activeLists, ...deletedLists].forEach((list) => {
     const li = document.createElement("li");
     li.className = "list-item";
 
@@ -418,21 +423,19 @@ function renderLists() {
 
     const actions = document.createElement("div");
 
-    const openBtn = document.createElement("button");
-    openBtn.type = "button";
-    openBtn.textContent = "Open";
-    openBtn.addEventListener("click", () => openList(list.id));
-
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.textContent = "Delete";
-    deleteBtn.addEventListener("click", () => softDeleteList(list.id));
+    deleteBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      softDeleteList(list.id);
+    });
 
     actions.appendChild(deleteBtn);
-    actions.appendChild(openBtn);
 
     li.appendChild(textBlock);
     li.appendChild(actions);
+    li.addEventListener("click", () => openList(list.id));
     listList.appendChild(li);
   });
 }
@@ -1317,7 +1320,7 @@ listForm.addEventListener("submit", (event) => {
 noteEditor.addEventListener("input", updateCurrentList);
 
 noteEditor.addEventListener("keydown", (event) => {
-  if (event.key !== "Enter") return;
+  if (event.key !== "Enter" && event.key !== "Backspace") return;
   const selection = window.getSelection();
   if (!selection || !selection.anchorNode) return;
 
@@ -1330,30 +1333,61 @@ noteEditor.addEventListener("keydown", (event) => {
 
   if (block && noteEditor.contains(block)) {
     const check = block.querySelector(".check");
-    event.preventDefault();
 
-    if (check) {
-      const isCircle = check.classList.contains("check-circle");
-      const checkClass = isCircle ? "check check-circle" : "check";
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (check) {
+        const isCircle = check.classList.contains("check-circle");
+        const checkClass = isCircle ? "check check-circle" : "check";
+        const newBlock = document.createElement("div");
+        newBlock.innerHTML = `<span class="${checkClass}" contenteditable="false" data-checked="false"></span>&nbsp;`;
+        block.after(newBlock);
+        placeCaretAtEnd(newBlock, selection);
+        return;
+      }
+
       const newBlock = document.createElement("div");
-      newBlock.innerHTML = `<span class="${checkClass}" contenteditable="false" data-checked="false"></span>&nbsp;`;
+      newBlock.innerHTML = "&nbsp;";
       block.after(newBlock);
       placeCaretAtEnd(newBlock, selection);
       return;
     }
 
-    const newBlock = document.createElement("div");
-    newBlock.innerHTML = "&nbsp;";
-    block.after(newBlock);
-    placeCaretAtEnd(newBlock, selection);
-    return;
+    if (event.key === "Backspace" && check && selection.isCollapsed) {
+      const textNodes = Array.from(block.childNodes).filter(
+        (node) => node.nodeType === Node.TEXT_NODE
+      );
+      const textValue = textNodes.map((node) => node.textContent || "").join("");
+      const isWhitespaceOnly = textValue.trim() === "";
+
+      if (isWhitespaceOnly && !block.dataset.spaceCleared) {
+        event.preventDefault();
+        textNodes.forEach((node) => {
+          node.textContent = "";
+        });
+        block.dataset.spaceCleared = "true";
+        return;
+      }
+
+      if (isWhitespaceOnly && block.dataset.spaceCleared) {
+        event.preventDefault();
+        check.remove();
+        block.removeAttribute("data-space-cleared");
+        if (block.textContent.trim() === "") {
+          block.remove();
+        }
+        return;
+      }
+    }
   }
 
-  event.preventDefault();
-  const newBlock = document.createElement("div");
-  newBlock.innerHTML = "&nbsp;";
-  noteEditor.appendChild(newBlock);
-  placeCaretAtEnd(newBlock, selection);
+  if (event.key === "Enter") {
+    event.preventDefault();
+    const newBlock = document.createElement("div");
+    newBlock.innerHTML = "&nbsp;";
+    noteEditor.appendChild(newBlock);
+    placeCaretAtEnd(newBlock, selection);
+  }
 });
 
 function placeCaretAtEnd(element, selection) {
