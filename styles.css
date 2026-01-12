@@ -787,6 +787,21 @@ h1 {
   font-size: 0.9rem;
 }
 
+.semester-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.class-name-link {
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
 .class-table thead {
   background: var(--border);
   color: var(--ink);

@@ -45,6 +45,7 @@ const bodyElement = document.body;
 
 const schoolCards = document.querySelectorAll(".school-card");
 const semesterTitle = document.getElementById("semester-title");
+const semesterLockButton = document.getElementById("semester-lock");
 const classForm = document.getElementById("class-form");
 const classCodeInput = document.getElementById("class-code");
 const classNameInput = document.getElementById("class-name");
@@ -121,9 +122,9 @@ const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 function createEmptySchoolData() {
   return {
     semesters: {
-      "3rd-year-winter": { classes: [] },
-      "4th-year-fall": { classes: [] },
-      "4th-year-winter": { classes: [] }
+      "3rd-year-winter": { classes: [], locked: false },
+      "4th-year-fall": { classes: [], locked: false },
+      "4th-year-winter": { classes: [], locked: false }
     }
   };
 }
@@ -137,6 +138,9 @@ function normalizeSchoolData(data) {
     const semester = data.semesters[key];
     if (semester && Array.isArray(semester.classes)) {
       base.semesters[key].classes = semester.classes;
+    }
+    if (semester && typeof semester.locked === "boolean") {
+      base.semesters[key].locked = semester.locked;
     }
   });
 
@@ -670,8 +674,9 @@ function renderSemester() {
   const classes = semester.classes;
   classStats.textContent = `${classes.length} / 6 classes`;
   classEmpty.hidden = classes.length !== 0;
-  classForm.querySelector("button").disabled = classes.length >= 6;
-  classForm.hidden = classes.length >= 6;
+  classForm.querySelector("button").disabled = classes.length >= 6 || semester.locked;
+  classForm.hidden = classes.length >= 6 || semester.locked;
+  semesterLockButton.hidden = semester.locked || classes.length === 0;
 
   classes.forEach((item) => {
     const stats = computeClassStats(item);
@@ -684,7 +689,12 @@ function renderSemester() {
     codeCell.textContent = item.code;
 
     const nameCell = document.createElement("td");
-    nameCell.textContent = item.name;
+    const nameButton = document.createElement("button");
+    nameButton.type = "button";
+    nameButton.className = "class-name-link";
+    nameButton.textContent = item.name;
+    nameButton.addEventListener("click", () => openClass(item.id));
+    nameCell.appendChild(nameButton);
 
     const gradeCell = document.createElement("td");
     gradeCell.textContent = gradeText;
@@ -694,13 +704,6 @@ function renderSemester() {
 
     const crnCell = document.createElement("td");
     crnCell.textContent = item.crn;
-
-    const openCell = document.createElement("td");
-    const openBtn = document.createElement("button");
-    openBtn.type = "button";
-    openBtn.textContent = "Open";
-    openBtn.addEventListener("click", () => openClass(item.id));
-    openCell.appendChild(openBtn);
 
     const deleteCell = document.createElement("td");
     const deleteBtn = document.createElement("button");
@@ -714,7 +717,6 @@ function renderSemester() {
     row.appendChild(gradeCell);
     row.appendChild(weightCell);
     row.appendChild(crnCell);
-    row.appendChild(openCell);
     row.appendChild(deleteCell);
 
     classTableBody.appendChild(row);
@@ -851,6 +853,13 @@ function removeAssignment(assignmentId) {
     (item) => item.id !== assignmentId
   );
   renderClass();
+}
+
+function lockSemester() {
+  const semester = getSemester(currentSemesterId);
+  if (!semester) return;
+  semester.locked = true;
+  renderSemester();
 }
 
 function deleteClass(classId) {
@@ -1534,6 +1543,10 @@ menuClose.addEventListener("click", () => {
 
 menuScrim.addEventListener("click", () => {
   closeMenu();
+});
+
+semesterLockButton.addEventListener("click", () => {
+  lockSemester();
 });
 
 exportButton.addEventListener("click", () => {
