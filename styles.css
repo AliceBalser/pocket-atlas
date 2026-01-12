@@ -787,6 +787,16 @@ h1 {
   font-size: 0.9rem;
 }
 
+.class-table input {
+  width: 72px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 4px 6px;
+  background: var(--dark-blue);
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
 .semester-actions {
   display: flex;
   gap: 8px;

@@ -787,10 +787,23 @@ function renderClass() {
     weightCell.textContent = Number(assignment.weight).toFixed(1);
 
     const gradeCell = document.createElement("td");
-    gradeCell.textContent =
+    const gradeInput = document.createElement("input");
+    gradeInput.type = "number";
+    gradeInput.inputMode = "decimal";
+    gradeInput.min = "0";
+    gradeInput.max = "100";
+    gradeInput.step = "0.1";
+    gradeInput.value =
       typeof assignment.grade === "number" && !Number.isNaN(assignment.grade)
-        ? Number(assignment.grade).toFixed(1)
-        : "--";
+        ? assignment.grade
+        : "";
+    gradeInput.placeholder = "--";
+    const handleGradeUpdate = (event) => {
+      updateAssignmentGrade(assignment.id, event.target.value);
+    };
+    gradeInput.addEventListener("change", handleGradeUpdate);
+    gradeInput.addEventListener("blur", handleGradeUpdate);
+    gradeCell.appendChild(gradeInput);
 
     const deleteCell = document.createElement("td");
     const deleteBtn = document.createElement("button");
@@ -852,6 +865,21 @@ function removeAssignment(assignmentId) {
   classItem.assignments = classItem.assignments.filter(
     (item) => item.id !== assignmentId
   );
+  renderClass();
+}
+
+function updateAssignmentGrade(assignmentId, value) {
+  const classItem = getClass(currentSemesterId, currentClassId);
+  if (!classItem) return;
+  const assignment = classItem.assignments.find((item) => item.id === assignmentId);
+  if (!assignment) return;
+
+  const trimmed = String(value).trim();
+  assignment.grade = trimmed === "" ? null : Number(trimmed);
+  if (assignment.grade !== null && Number.isNaN(assignment.grade)) {
+    assignment.grade = null;
+  }
+
   renderClass();
 }
 
