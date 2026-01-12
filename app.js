@@ -593,7 +593,7 @@ function setPage(target) {
   }
 
   if (safeTarget === "lists") {
-    listTitleInput.focus();
+    listTitleInput.blur();
   }
   if (safeTarget === "class") {
     assignmentNameInput.focus();
@@ -1373,9 +1373,8 @@ noteEditor.addEventListener("keydown", (event) => {
         event.preventDefault();
         check.remove();
         block.removeAttribute("data-space-cleared");
-        if (block.textContent.trim() === "") {
-          block.remove();
-        }
+        block.innerHTML = "&nbsp;";
+        placeCaretAtEnd(block, selection);
         return;
       }
     }
