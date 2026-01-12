@@ -774,7 +774,9 @@ function renderClass() {
     (sum, assignment) => sum + (Number(assignment.weight) || 0),
     0
   );
-  assignmentForm.hidden = weightTotal >= 100;
+  const hideAssignments = weightTotal >= 100;
+  assignmentForm.hidden = hideAssignments;
+  assignmentForm.style.display = hideAssignments ? "none" : "grid";
 
   assignmentTableBody.innerHTML = "";
   assignmentEmpty.hidden = classItem.assignments.length !== 0;
@@ -845,6 +847,12 @@ function addAssignment() {
   if (!name) return;
   if (Number.isNaN(weight)) return;
   if (gradeRaw !== "" && Number.isNaN(grade)) return;
+
+  const currentWeightTotal = classItem.assignments.reduce(
+    (sum, assignment) => sum + (Number(assignment.weight) || 0),
+    0
+  );
+  if (currentWeightTotal + weight > 100) return;
 
   classItem.assignments.push({
     id: crypto.randomUUID(),
