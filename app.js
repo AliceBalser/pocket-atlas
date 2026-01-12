@@ -108,8 +108,6 @@ let goals = loadGoals();
 let hobbies = loadHobbies();
 let plans = loadPlans();
 let currentPlanId = null;
-let holdTimer = null;
-let holdTarget = null;
 
 const semesterNames = {
   "3rd-year-winter": "3rd Year Winter",
@@ -991,9 +989,8 @@ function renderHabits(category) {
       ring.classList.add("is-done");
     }
 
-    const rate = computeCompletionRate(habit, 7);
-    ring.style.setProperty("--progress", rate);
-    ring.title = "Hold 0.5s to toggle today";
+    ring.style.setProperty("--progress", doneToday ? 1 : 0);
+    ring.title = "Tap to toggle today";
 
     const titleWrap = document.createElement("div");
     const title = document.createElement("div");
@@ -1307,27 +1304,6 @@ function toggleHabitToday(habitId) {
   renderHabits(habit.category);
 }
 
-function startHold(button) {
-  if (!button) return;
-  holdTarget = button;
-  holdTarget.classList.add("is-holding");
-  holdTimer = setTimeout(() => {
-    toggleHabitToday(button.dataset.habitId);
-    clearHold();
-  }, 500);
-}
-
-function clearHold() {
-  if (holdTimer) {
-    clearTimeout(holdTimer);
-  }
-  if (holdTarget) {
-    holdTarget.classList.remove("is-holding");
-  }
-  holdTimer = null;
-  holdTarget = null;
-}
-
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const target = button.dataset.target;
@@ -1550,25 +1526,11 @@ planEditorNotes.addEventListener("input", (event) => {
   updatePlanNotes(event.target.value);
 });
 
-document.addEventListener("pointerdown", (event) => {
+document.addEventListener("click", (event) => {
   const button = event.target.closest(".habit-ring");
   if (!button) return;
   event.preventDefault();
-  startHold(button);
-});
-
-document.addEventListener("pointerup", () => {
-  clearHold();
-});
-
-document.addEventListener("pointercancel", () => {
-  clearHold();
-});
-
-document.addEventListener("pointerout", (event) => {
-  if (holdTarget && event.target === holdTarget) {
-    clearHold();
-  }
+  toggleHabitToday(button.dataset.habitId);
 });
 
 menuToggle.addEventListener("click", () => {

@@ -806,8 +806,9 @@ h1 {
   border: none;
   background: transparent;
   color: var(--ink);
-  font-weight: 400;
+  font-weight: inherit;
   font-family: inherit;
+  font-size: inherit;
   padding: 0;
   cursor: pointer;
   text-align: left;
