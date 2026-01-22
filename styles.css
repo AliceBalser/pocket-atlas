@@ -797,6 +797,10 @@ h1 {
   z-index: 40;
 }
 
+.calendar-modal[hidden] {
+  display: none;
+}
+
 .calendar-modal-card {
   width: min(420px, 90vw);
   background: var(--card);
