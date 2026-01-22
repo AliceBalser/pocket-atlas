@@ -779,6 +779,10 @@ h1 {
   gap: 4px;
 }
 
+.calendar-cell.is-busy {
+  background: var(--dark-blue);
+}
+
 .calendar-event {
   background: var(--dark-blue);
   color: var(--ink);

@@ -1486,21 +1486,35 @@ function renderCalendarWeek() {
       cell.dataset.hour = String(hour);
       cell.addEventListener("click", () => openCalendarModal(date, hour));
 
+      const cellStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0);
+      const cellEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour + 1, 0, 0);
+
       const events = calendarEvents.filter((eventItem) => {
         const startDate = new Date(eventItem.start);
-        return (
+        const endDate = new Date(eventItem.end);
+        if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+          return false;
+        }
+        return startDate < cellEnd && endDate > cellStart;
+      });
+
+      if (events.length > 0) {
+        cell.classList.add("is-busy");
+      }
+
+      events.forEach((eventItem) => {
+        const startDate = new Date(eventItem.start);
+        if (
           startDate.getFullYear() === date.getFullYear() &&
           startDate.getMonth() === date.getMonth() &&
           startDate.getDate() === date.getDate() &&
           startDate.getHours() === hour
-        );
-      });
-
-      events.forEach((eventItem) => {
-        const pill = document.createElement("div");
-        pill.className = "calendar-event";
-        pill.textContent = eventItem.title;
-        cell.appendChild(pill);
+        ) {
+          const pill = document.createElement("div");
+          pill.className = "calendar-event";
+          pill.textContent = eventItem.title;
+          cell.appendChild(pill);
+        }
       });
 
       calendarGrid.appendChild(cell);
