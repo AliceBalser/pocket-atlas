@@ -1443,9 +1443,7 @@ function formatCalendarRange(startDate) {
 }
 
 function formatTimeLabel(hour) {
-  const suffix = hour >= 12 ? "PM" : "AM";
-  const display = hour % 12 === 0 ? 12 : hour % 12;
-  return `${display} ${suffix}`;
+  return `${String(hour).padStart(2, "0")}`;
 }
 
 function buildDateTime(date, timeString) {
