@@ -738,7 +738,7 @@ h1 {
 .calendar-grid {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: 64px repeat(7, minmax(0, 1fr));
+  grid-template-columns: 36px repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 
