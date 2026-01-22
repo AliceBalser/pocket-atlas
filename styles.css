@@ -861,6 +861,19 @@ h1 {
   flex: 1;
 }
 
+.calendar-repeat {
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.calendar-repeat label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
 .calendar-date {
   font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
   font-size: 0.9rem;

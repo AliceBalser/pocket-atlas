@@ -111,6 +111,7 @@ const calendarDateLabel = document.getElementById("calendar-date-label");
 const calendarStart = document.getElementById("calendar-start");
 const calendarEnd = document.getElementById("calendar-end");
 const calendarNotes = document.getElementById("calendar-notes");
+const calendarRepeatInputs = document.querySelectorAll(".calendar-repeat input");
 
 let deferredInstallPrompt = null;
 let lists = loadLists();
@@ -126,6 +127,7 @@ let currentPlanId = null;
 let calendarEvents = loadCalendarEvents();
 let calendarWeekStart = startOfWeek(new Date());
 let calendarSelectedDate = null;
+let calendarEditingId = null;
 
 const semesterNames = {
   "3rd-year-winter": "3rd Year Winter",
@@ -1493,6 +1495,14 @@ function renderCalendarWeek() {
         if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
           return false;
         }
+
+        if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
+          const matchesDay = eventItem.repeatDays.includes(date.getDay());
+          const startHour = startDate.getHours() + startDate.getMinutes() / 60;
+          const endHour = endDate.getHours() + endDate.getMinutes() / 60;
+          return matchesDay && hour >= startHour && hour < endHour;
+        }
+
         return startDate < cellEnd && endDate > cellStart;
       });
 
@@ -1501,16 +1511,14 @@ function renderCalendarWeek() {
       }
 
       events.forEach((eventItem) => {
-        const startDate = new Date(eventItem.start);
-        if (
-          startDate.getFullYear() === date.getFullYear() &&
-          startDate.getMonth() === date.getMonth() &&
-          startDate.getDate() === date.getDate() &&
-          startDate.getHours() === hour
-        ) {
+        if (isEventStartForCell(eventItem, date, hour)) {
           const pill = document.createElement("div");
           pill.className = "calendar-event";
           pill.textContent = eventItem.title;
+          pill.addEventListener("click", (event) => {
+            event.stopPropagation();
+            openCalendarModal(date, hour, eventItem);
+          });
           cell.appendChild(pill);
         }
       });
@@ -1520,22 +1528,35 @@ function renderCalendarWeek() {
   }
 }
 
-function openCalendarModal(date, hour) {
+function openCalendarModal(date, hour, eventItem) {
   calendarSelectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   calendarDateLabel.textContent = calendarSelectedDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", year: "numeric" });
-  calendarTitle.value = "";
-  calendarNotes.value = "";
-  const startTime = `${String(hour).padStart(2, "0")}:00`;
-  const endHour = hour + 1;
-  const endTime = `${String(endHour).padStart(2, "0")}:00`;
-  calendarStart.value = startTime;
-  calendarEnd.value = endTime;
+  calendarEditingId = eventItem ? eventItem.id : null;
+  if (eventItem) {
+    calendarTitle.value = eventItem.title || "";
+    calendarNotes.value = eventItem.notes || "";
+    const startDate = new Date(eventItem.start);
+    const endDate = new Date(eventItem.end);
+    calendarStart.value = `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}`;
+    calendarEnd.value = `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}`;
+    setRepeatInputs(eventItem.repeatDays || []);
+  } else {
+    calendarTitle.value = "";
+    calendarNotes.value = "";
+    const startTime = `${String(hour).padStart(2, "0")}:00`;
+    const endHour = hour + 1;
+    const endTime = `${String(endHour).padStart(2, "0")}:00`;
+    calendarStart.value = startTime;
+    calendarEnd.value = endTime;
+    setRepeatInputs([]);
+  }
   calendarModal.hidden = false;
 }
 
 function closeCalendarModal() {
   calendarModal.hidden = true;
   calendarSelectedDate = null;
+  calendarEditingId = null;
 }
 
 function addCalendarEvent() {
@@ -1544,18 +1565,59 @@ function addCalendarEvent() {
   if (!title) return;
   const start = buildDateTime(calendarSelectedDate, calendarStart.value);
   const end = buildDateTime(calendarSelectedDate, calendarEnd.value);
+  const repeatDays = getRepeatDays();
 
-  calendarEvents.push({
-    id: crypto.randomUUID(),
-    title,
-    start: start.toISOString(),
-    end: end.toISOString(),
-    notes: calendarNotes.value.trim()
-  });
+  if (calendarEditingId) {
+    const existing = calendarEvents.find((item) => item.id === calendarEditingId);
+    if (existing) {
+      existing.title = title;
+      existing.start = start.toISOString();
+      existing.end = end.toISOString();
+      existing.notes = calendarNotes.value.trim();
+      existing.repeatDays = repeatDays;
+    }
+  } else {
+    calendarEvents.push({
+      id: crypto.randomUUID(),
+      title,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      notes: calendarNotes.value.trim(),
+      repeatDays
+    });
+  }
 
   saveCalendarEvents();
   renderCalendarWeek();
   closeCalendarModal();
+}
+
+function getRepeatDays() {
+  return Array.from(calendarRepeatInputs)
+    .filter((input) => input.checked)
+    .map((input) => Number(input.value));
+}
+
+function setRepeatInputs(days) {
+  calendarRepeatInputs.forEach((input) => {
+    input.checked = Array.isArray(days) && days.includes(Number(input.value));
+  });
+}
+
+function isEventStartForCell(eventItem, date, hour) {
+  const startDate = new Date(eventItem.start);
+  if (Number.isNaN(startDate.getTime())) return false;
+  const matchesDate =
+    startDate.getFullYear() === date.getFullYear() &&
+    startDate.getMonth() === date.getMonth() &&
+    startDate.getDate() === date.getDate();
+  const matchesHour = startDate.getHours() === hour;
+  if (matchesDate && matchesHour) return true;
+
+  if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
+    return eventItem.repeatDays.includes(date.getDay()) && matchesHour;
+  }
+  return false;
 }
 
 function toggleHabitToday(habitId) {
