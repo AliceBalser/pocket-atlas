@@ -1462,7 +1462,7 @@ function renderCalendarWeek() {
   calendarGrid.innerHTML = "";
 
   calendarGrid.appendChild(document.createElement("div"));
-  for (let i = 0; i < 7; i += 1) {
+  for (let i = 0; i < 5; i += 1) {
     const dayDate = addDays(calendarWeekStart, i);
     const header = document.createElement("div");
     header.className = "calendar-header";
@@ -1476,7 +1476,7 @@ function renderCalendarWeek() {
     timeCell.textContent = formatTimeLabel(hour);
     calendarGrid.appendChild(timeCell);
 
-    for (let day = 0; day < 7; day += 1) {
+    for (let day = 0; day < 5; day += 1) {
       const date = addDays(calendarWeekStart, day);
       const cell = document.createElement("div");
       cell.className = "calendar-cell";
