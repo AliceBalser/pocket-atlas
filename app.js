@@ -18,7 +18,8 @@ const pages = {
   "habits-lavender": document.getElementById("page-habits-lavender"),
   goals: document.getElementById("page-goals"),
   hobbies: document.getElementById("page-hobbies"),
-  plans: document.getElementById("page-plans")
+  plans: document.getElementById("page-plans"),
+  calendar: document.getElementById("page-calendar")
 };
 
 const navButtons = document.querySelectorAll("[data-target]");
@@ -116,6 +117,7 @@ const semesterNames = {
 };
 
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const HABIT_DAY_START_HOUR = 4;
 
 function createEmptySchoolData() {
   return {
@@ -246,11 +248,17 @@ function formatUpdated(timestamp) {
   return new Date(timestamp).toLocaleDateString();
 }
 
+function toHabitDay(date) {
+  const shifted = new Date(date.getTime() - HABIT_DAY_START_HOUR * 60 * 60 * 1000);
+  return new Date(shifted.getFullYear(), shifted.getMonth(), shifted.getDate());
+}
+
 function formatDateKey(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  const day = toHabitDay(date);
+  const year = day.getFullYear();
+  const month = String(day.getMonth() + 1).padStart(2, "0");
+  const dayNum = String(day.getDate()).padStart(2, "0");
+  return `${year}-${month}-${dayNum}`;
 }
 
 function parseDateKey(key) {
@@ -260,10 +268,6 @@ function parseDateKey(key) {
   return new Date(year, month - 1, day);
 }
 
-function toLocalMidnight(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
 function addDays(date, amount) {
   const next = new Date(date);
   next.setDate(next.getDate() + amount);
@@ -271,14 +275,26 @@ function addDays(date, amount) {
 }
 
 function daysBetween(startDate, endDate) {
-  const start = toLocalMidnight(startDate);
-  const end = toLocalMidnight(endDate);
+  const start = toHabitDay(startDate);
+  const end = toHabitDay(endDate);
   return Math.round((end - start) / (1000 * 60 * 60 * 24));
+}
+
+function getWeekStart(date) {
+  const day = new Date(date);
+  const weekday = day.getDay();
+  const diff = (weekday + 6) % 7;
+  day.setDate(day.getDate() - diff);
+  return new Date(day.getFullYear(), day.getMonth(), day.getDate());
+}
+
+function getWeekKey(date) {
+  return formatDateKey(getWeekStart(date));
 }
 
 function isDueOnDate(habit, date) {
   const schedule = habit.schedule || { type: "daily" };
-  const startDate = parseDateKey(habit.createdAt) || toLocalMidnight(date);
+  const startDate = parseDateKey(habit.createdAt) || toHabitDay(date);
   const diff = daysBetween(startDate, date);
   if (diff < 0) return false;
 
@@ -287,10 +303,12 @@ function isDueOnDate(habit, date) {
       return Array.isArray(schedule.daysOfWeek)
         ? schedule.daysOfWeek.includes(date.getDay())
         : false;
+    case "days-per-week":
+      return true;
     case "every-days":
       return schedule.interval > 0 ? diff % schedule.interval === 0 : false;
     case "every-weeks":
-      return schedule.interval > 0 ? diff % (schedule.interval * 7) === 0 : false;
+      return true;
     case "daily":
     default:
       return true;
@@ -298,7 +316,7 @@ function isDueOnDate(habit, date) {
 }
 
 function getCalendarDates(days = 28) {
-  const today = toLocalMidnight(new Date());
+  const today = toHabitDay(new Date());
   const dates = [];
   for (let i = days - 1; i >= 0; i -= 1) {
     dates.push(addDays(today, -i));
@@ -307,7 +325,7 @@ function getCalendarDates(days = 28) {
 }
 
 function computeCompletionRate(habit, days = 7) {
-  const today = toLocalMidnight(new Date());
+  const today = toHabitDay(new Date());
   let due = 0;
   let done = 0;
 
@@ -326,11 +344,73 @@ function computeCompletionRate(habit, days = 7) {
 function computeStreaks(habit) {
   const startDate = parseDateKey(habit.createdAt);
   if (!startDate) return { current: 0, longest: 0 };
-  const today = toLocalMidnight(new Date());
+  const today = toHabitDay(new Date());
+  const schedule = habit.schedule || { type: "daily" };
+
+  if (schedule.type === "every-weeks" && schedule.interval > 0) {
+    const completionKeys = Object.keys(habit.completions || {}).sort();
+    if (completionKeys.length === 0) return { current: 0, longest: 0 };
+    const dates = completionKeys.map(parseDateKey).filter(Boolean);
+    dates.sort((a, b) => a - b);
+    const maxGap = schedule.interval * 7;
+    let longest = 1;
+    let running = 1;
+    for (let i = 1; i < dates.length; i += 1) {
+      const gap = daysBetween(dates[i - 1], dates[i]);
+      if (gap <= maxGap) {
+        running += 1;
+        if (running > longest) longest = running;
+      } else {
+        running = 1;
+      }
+    }
+    const last = dates[dates.length - 1];
+    const current = daysBetween(last, today) <= maxGap ? running : 0;
+    return { current, longest };
+  }
+
+  if (schedule.type === "days-per-week") {
+    const target = Math.max(1, schedule.targetDays || 1);
+    const completions = habit.completions || {};
+    const weekCounts = new Map();
+    Object.keys(completions).forEach((key) => {
+      const date = parseDateKey(key);
+      if (!date) return;
+      const weekKey = getWeekKey(date);
+      weekCounts.set(weekKey, (weekCounts.get(weekKey) || 0) + 1);
+    });
+
+    const startWeek = getWeekStart(startDate);
+    const endWeek = getWeekStart(today);
+    let longest = 0;
+    let running = 0;
+    for (let week = new Date(startWeek); week <= endWeek; week = addDays(week, 7)) {
+      const count = weekCounts.get(getWeekKey(week)) || 0;
+      if (count >= target) {
+        running += 1;
+        if (running > longest) longest = running;
+      } else {
+        running = 0;
+      }
+    }
+
+    let current = 0;
+    for (let week = new Date(endWeek); week >= startWeek; week = addDays(week, -7)) {
+      const count = weekCounts.get(getWeekKey(week)) || 0;
+      if (count >= target) {
+        current += 1;
+      } else {
+        break;
+      }
+    }
+
+    return { current, longest };
+  }
+
   let longest = 0;
   let running = 0;
 
-  for (let date = toLocalMidnight(startDate); date <= today; date = addDays(date, 1)) {
+  for (let date = toHabitDay(startDate); date <= today; date = addDays(date, 1)) {
     if (!isDueOnDate(habit, date)) continue;
     const key = formatDateKey(date);
     if (habit.completions && habit.completions[key]) {
@@ -361,6 +441,9 @@ function formatScheduleSummary(habit) {
     const days = Array.isArray(schedule.daysOfWeek) ? schedule.daysOfWeek : [];
     if (days.length === 0) return "Specific days";
     return days.map((day) => dayLabels[day]).join(", ");
+  }
+  if (schedule.type === "days-per-week") {
+    return `${schedule.targetDays || 1} days / week`;
   }
   if (schedule.type === "every-days") {
     return `Every ${schedule.interval} days`;
@@ -912,10 +995,12 @@ function updateHabitForm(form) {
   const daysRow = form.querySelector(".habit-days");
   const intervalDays = form.querySelector(".habit-interval-days");
   const intervalWeeks = form.querySelector(".habit-interval-weeks");
+  const intervalWeekly = form.querySelector(".habit-interval-weekly");
 
   daysRow.style.display = schedule === "days" ? "flex" : "none";
   intervalDays.classList.toggle("is-active", schedule === "every-days");
   intervalWeeks.classList.toggle("is-active", schedule === "every-weeks");
+  intervalWeekly.classList.toggle("is-active", schedule === "days-per-week");
 }
 
 function createHabitFromForm(form) {
@@ -930,6 +1015,8 @@ function createHabitFromForm(form) {
   const dayDefault = [new Date().getDay()];
   const intervalInput = scheduleType === "every-weeks"
     ? form.querySelector(".habit-interval-weeks .habit-interval-input")
+    : scheduleType === "days-per-week"
+    ? form.querySelector(".habit-interval-weekly .habit-interval-input")
     : form.querySelector(".habit-interval-days .habit-interval-input");
   const intervalValue = Number(intervalInput ? intervalInput.value : 1) || 1;
 
@@ -940,6 +1027,8 @@ function createHabitFromForm(form) {
     schedule = { type: "every-days", interval: Math.max(1, intervalValue) };
   } else if (scheduleType === "every-weeks") {
     schedule = { type: "every-weeks", interval: Math.max(1, intervalValue) };
+  } else if (scheduleType === "days-per-week") {
+    schedule = { type: "days-per-week", targetDays: Math.max(1, intervalValue) };
   }
 
   const habit = {
@@ -982,7 +1071,7 @@ function renderHabits(category) {
     ring.className = "habit-ring";
     ring.dataset.habitId = habit.id;
 
-    const today = toLocalMidnight(new Date());
+    const today = toHabitDay(new Date());
     const todayKey = formatDateKey(today);
     const doneToday = habit.completions && habit.completions[todayKey];
     if (doneToday) {
@@ -1289,7 +1378,7 @@ function toggleHabitToday(habitId) {
   const habit = habits.find((item) => item.id === habitId);
   if (!habit) return;
 
-  const today = toLocalMidnight(new Date());
+  const today = toHabitDay(new Date());
   if (!isDueOnDate(habit, today)) return;
 
   const key = formatDateKey(today);
@@ -1340,19 +1429,23 @@ listForm.addEventListener("submit", (event) => {
   listTitleInput.value = "";
 });
 
-noteEditor.addEventListener("input", updateCurrentList);
+noteEditor.addEventListener("input", (event) => {
+  updateCurrentList();
+  const selection = window.getSelection();
+  if (!selection || !selection.anchorNode) return;
+  const block = getLineBlockFromSelection(selection);
+  if (!block || !block.dataset.spaceCleared) return;
+  if (block.textContent.replace(/\u00a0/g, "").trim() !== "") {
+    block.removeAttribute("data-space-cleared");
+  }
+});
 
 noteEditor.addEventListener("keydown", (event) => {
   if (event.key !== "Enter" && event.key !== "Backspace") return;
   const selection = window.getSelection();
   if (!selection || !selection.anchorNode) return;
 
-  const anchor = selection.anchorNode;
-  const block = anchor.nodeType === Node.ELEMENT_NODE
-    ? anchor.closest("div")
-    : anchor.parentElement
-    ? anchor.parentElement.closest("div")
-    : null;
+  const block = getLineBlockFromSelection(selection);
 
   if (block && noteEditor.contains(block)) {
     const check = block.querySelector(".check");
@@ -1377,29 +1470,22 @@ noteEditor.addEventListener("keydown", (event) => {
     }
 
     if (event.key === "Backspace" && check && selection.isCollapsed) {
-      const textNodes = Array.from(block.childNodes).filter(
-        (node) => node.nodeType === Node.TEXT_NODE
-      );
-      const textValue = textNodes.map((node) => node.textContent || "").join("");
-      const isWhitespaceOnly = textValue.trim() === "";
+      if (!isCaretAtStart(selection, block)) return;
+      const textValue = block.textContent.replace(/\u00a0/g, "").trim();
+      if (textValue.length > 0) return;
 
-      if (isWhitespaceOnly && !block.dataset.spaceCleared) {
+      if (!block.dataset.spaceCleared) {
         event.preventDefault();
-        textNodes.forEach((node) => {
-          node.textContent = "";
-        });
         block.dataset.spaceCleared = "true";
         return;
       }
 
-      if (isWhitespaceOnly && block.dataset.spaceCleared) {
-        event.preventDefault();
-        check.remove();
-        block.removeAttribute("data-space-cleared");
-        block.innerHTML = "&nbsp;";
-        placeCaretAtEnd(block, selection);
-        return;
-      }
+      event.preventDefault();
+      check.remove();
+      block.removeAttribute("data-space-cleared");
+      block.innerHTML = "&nbsp;";
+      placeCaretAtEnd(block, selection);
+      return;
     }
   }
 
@@ -1418,6 +1504,26 @@ function placeCaretAtEnd(element, selection) {
   range.collapse(false);
   selection.removeAllRanges();
   selection.addRange(range);
+}
+
+function getLineBlockFromSelection(selection) {
+  let node = selection.anchorNode;
+  if (!node) return null;
+  if (node.nodeType === Node.TEXT_NODE) {
+    node = node.parentElement;
+  }
+  if (!(node instanceof HTMLElement)) return null;
+  if (node === noteEditor) return null;
+  return node.closest("div");
+}
+
+function isCaretAtStart(selection, block) {
+  if (!selection.rangeCount) return false;
+  const range = selection.getRangeAt(0).cloneRange();
+  range.setStart(block, 0);
+  range.setEnd(selection.anchorNode, selection.anchorOffset);
+  const text = range.toString().replace(/\u00a0/g, "");
+  return text.length === 0;
 }
 
 noteEditor.addEventListener("click", (event) => {
@@ -1447,31 +1553,46 @@ insertSquare.addEventListener("click", () => insertCheck("square"));
 insertCircle.addEventListener("click", () => insertCheck("circle"));
 
 function reorderSquareChecks() {
-  const squareBlocks = Array.from(
-    noteEditor.querySelectorAll(".check:not(.check-circle)")
-  )
-    .map((check) => check.closest("div"))
-    .filter(Boolean);
-
-  if (squareBlocks.length < 2) return;
-
-  const unchecked = [];
-  const checked = [];
-
-  squareBlocks.forEach((block) => {
-    const check = block.querySelector(".check:not(.check-circle)");
-    if (!check) return;
-    if (check.classList.contains("checked")) {
-      checked.push(block);
-    } else {
-      unchecked.push(block);
+  let node = noteEditor.firstElementChild;
+  while (node) {
+    if (!isSquareBlock(node)) {
+      node = node.nextElementSibling;
+      continue;
     }
-  });
 
-  const ordered = unchecked.concat(checked);
-  ordered.forEach((block) => {
-    noteEditor.appendChild(block);
-  });
+    const run = [];
+    let cursor = node;
+    while (cursor && isSquareBlock(cursor)) {
+      run.push(cursor);
+      cursor = cursor.nextElementSibling;
+    }
+    const nextAfterRun = cursor;
+
+    const unchecked = [];
+    const checked = [];
+    run.forEach((block) => {
+      const check = block.querySelector(".check:not(.check-circle)");
+      if (!check) return;
+      if (check.classList.contains("checked")) {
+        checked.push(block);
+      } else {
+        unchecked.push(block);
+      }
+    });
+
+    const ordered = unchecked.concat(checked);
+    ordered.forEach((block) => {
+      noteEditor.insertBefore(block, nextAfterRun);
+    });
+
+    node = nextAfterRun;
+  }
+}
+
+function isSquareBlock(block) {
+  if (!(block instanceof HTMLElement)) return false;
+  const check = block.querySelector(".check");
+  return Boolean(check && !check.classList.contains("check-circle"));
 }
 
 classForm.addEventListener("submit", (event) => {

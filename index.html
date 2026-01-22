@@ -29,6 +29,7 @@
       <button class="nav-btn" data-target="goals">Goals</button>
       <button class="nav-btn" data-target="hobbies">Hobbies</button>
       <button class="nav-btn" data-target="plans">Future Plans</button>
+      <button class="nav-btn" data-target="calendar">Calendar</button>
     </nav>
     <div class="menu-scrim" id="menu-scrim" hidden></div>
 
@@ -184,6 +185,7 @@
             <option value="days">Specific days</option>
             <option value="every-days">Every X days</option>
             <option value="every-weeks">Every X weeks</option>
+            <option value="days-per-week">X days per week</option>
           </select>
           <div class="habit-days">
             <label><input type="checkbox" data-day="1">Mon</label>
@@ -203,6 +205,11 @@
             <span>Every</span>
             <input class="habit-interval-input" type="number" min="1" max="12" value="2">
             <span>weeks</span>
+          </div>
+          <div class="habit-interval habit-interval-weekly">
+            <span>Target</span>
+            <input class="habit-interval-input" type="number" min="1" max="7" value="3">
+            <span>days / week</span>
           </div>
           <button class="primary" type="submit">Add Habit</button>
         </form>
@@ -233,6 +240,7 @@
             <option value="days">Specific days</option>
             <option value="every-days">Every X days</option>
             <option value="every-weeks">Every X weeks</option>
+            <option value="days-per-week">X days per week</option>
           </select>
           <div class="habit-days">
             <label><input type="checkbox" data-day="1">Mon</label>
@@ -252,6 +260,11 @@
             <span>Every</span>
             <input class="habit-interval-input" type="number" min="1" max="12" value="2">
             <span>weeks</span>
+          </div>
+          <div class="habit-interval habit-interval-weekly">
+            <span>Target</span>
+            <input class="habit-interval-input" type="number" min="1" max="7" value="3">
+            <span>days / week</span>
           </div>
           <button class="primary" type="submit">Add Habit</button>
         </form>
@@ -282,6 +295,7 @@
             <option value="days">Specific days</option>
             <option value="every-days">Every X days</option>
             <option value="every-weeks">Every X weeks</option>
+            <option value="days-per-week">X days per week</option>
           </select>
           <div class="habit-days">
             <label><input type="checkbox" data-day="1">Mon</label>
@@ -301,6 +315,11 @@
             <span>Every</span>
             <input class="habit-interval-input" type="number" min="1" max="12" value="2">
             <span>weeks</span>
+          </div>
+          <div class="habit-interval habit-interval-weekly">
+            <span>Target</span>
+            <input class="habit-interval-input" type="number" min="1" max="7" value="3">
+            <span>days / week</span>
           </div>
           <button class="primary" type="submit">Add Habit</button>
         </form>
@@ -455,6 +474,144 @@
           </table>
         </div>
         <p id="assignment-empty" class="empty-state">No assignments yet.</p>
+      </section>
+
+      <section id="page-calendar" class="page">
+        <div class="todo-header">
+          <div>
+            <h2>Weekly Calendar</h2>
+            <p class="muted">Mon–Sun · 8 AM–8 PM</p>
+          </div>
+          <button class="ghost" data-target="home">Back to Home</button>
+        </div>
+
+        <div class="calendar-grid">
+          <div class="calendar-header"></div>
+          <div class="calendar-header">Mon</div>
+          <div class="calendar-header">Tue</div>
+          <div class="calendar-header">Wed</div>
+          <div class="calendar-header">Thu</div>
+          <div class="calendar-header">Fri</div>
+          <div class="calendar-header">Sat</div>
+          <div class="calendar-header">Sun</div>
+
+          <div class="calendar-time">8 AM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">9 AM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">10 AM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">11 AM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">12 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">1 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">2 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">3 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">4 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">5 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">6 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">7 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time">8 PM</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+        </div>
       </section>
     </main>
 

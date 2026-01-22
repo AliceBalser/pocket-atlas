@@ -735,6 +735,33 @@ h1 {
   resize: vertical;
 }
 
+.calendar-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 64px repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendar-header,
+.calendar-time {
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink);
+  text-align: center;
+}
+
+.calendar-time {
+  text-align: right;
+  padding-right: 6px;
+}
+
+.calendar-cell {
+  min-height: 44px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
 .school-grid {
   display: grid;
   gap: 16px;
