@@ -485,132 +485,39 @@
           <button class="ghost" data-target="home">Back to Home</button>
         </div>
 
-        <div class="calendar-grid">
-          <div class="calendar-header"></div>
-          <div class="calendar-header">Mon</div>
-          <div class="calendar-header">Tue</div>
-          <div class="calendar-header">Wed</div>
-          <div class="calendar-header">Thu</div>
-          <div class="calendar-header">Fri</div>
-          <div class="calendar-header">Sat</div>
-          <div class="calendar-header">Sun</div>
+        <div class="calendar-controls">
+          <button class="ghost" type="button" id="calendar-prev">Prev</button>
+          <div class="calendar-range" id="calendar-range">Week</div>
+          <button class="ghost" type="button" id="calendar-next">Next</button>
+        </div>
 
-          <div class="calendar-time">8 AM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
+        <div class="calendar-grid" id="calendar-grid"></div>
 
-          <div class="calendar-time">9 AM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">10 AM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">11 AM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">12 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">1 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">2 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">3 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">4 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">5 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">6 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">7 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-
-          <div class="calendar-time">8 PM</div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
-          <div class="calendar-cell"></div>
+        <div class="calendar-modal" id="calendar-modal" hidden>
+          <div class="calendar-modal-card">
+            <div class="calendar-modal-header">
+              <h3>New Event</h3>
+              <button class="ghost" type="button" id="calendar-close">Close</button>
+            </div>
+            <form id="calendar-form" autocomplete="off">
+              <input id="calendar-title" type="text" placeholder="Event title" maxlength="120">
+              <div class="calendar-row">
+                <div class="calendar-date" id="calendar-date-label">Date</div>
+              </div>
+              <div class="calendar-row">
+                <label>
+                  Start
+                  <input id="calendar-start" type="time">
+                </label>
+                <label>
+                  End
+                  <input id="calendar-end" type="time">
+                </label>
+              </div>
+              <textarea id="calendar-notes" placeholder="Notes..."></textarea>
+              <button class="primary" type="submit">Save Event</button>
+            </form>
+          </div>
         </div>
       </section>
     </main>

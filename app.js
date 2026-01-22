@@ -4,6 +4,7 @@ const HABITS_STORAGE_KEY = "pocket-atlas-habits-v1";
 const GOALS_STORAGE_KEY = "pocket-atlas-goals-v1";
 const HOBBIES_STORAGE_KEY = "pocket-atlas-hobbies-v1";
 const PLANS_STORAGE_KEY = "pocket-atlas-plans-v1";
+const CALENDAR_STORAGE_KEY = "pocket-atlas-calendar-v1";
 
 const pages = {
   home: document.getElementById("page-home"),
@@ -98,6 +99,19 @@ const planSelectedLabel = document.getElementById("plan-selected-label");
 const planEditorTitle = document.getElementById("plan-editor-title");
 const planEditorNotes = document.getElementById("plan-editor-notes");
 
+const calendarGrid = document.getElementById("calendar-grid");
+const calendarRange = document.getElementById("calendar-range");
+const calendarPrev = document.getElementById("calendar-prev");
+const calendarNext = document.getElementById("calendar-next");
+const calendarModal = document.getElementById("calendar-modal");
+const calendarClose = document.getElementById("calendar-close");
+const calendarForm = document.getElementById("calendar-form");
+const calendarTitle = document.getElementById("calendar-title");
+const calendarDateLabel = document.getElementById("calendar-date-label");
+const calendarStart = document.getElementById("calendar-start");
+const calendarEnd = document.getElementById("calendar-end");
+const calendarNotes = document.getElementById("calendar-notes");
+
 let deferredInstallPrompt = null;
 let lists = loadLists();
 let currentListId = null;
@@ -109,6 +123,9 @@ let goals = loadGoals();
 let hobbies = loadHobbies();
 let plans = loadPlans();
 let currentPlanId = null;
+let calendarEvents = loadCalendarEvents();
+let calendarWeekStart = startOfWeek(new Date());
+let calendarSelectedDate = null;
 
 const semesterNames = {
   "3rd-year-winter": "3rd Year Winter",
@@ -243,6 +260,22 @@ function savePlans() {
   localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans));
 }
 
+function loadCalendarEvents() {
+  const raw = localStorage.getItem(CALENDAR_STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("Failed to parse calendar events", error);
+    return [];
+  }
+}
+
+function saveCalendarEvents() {
+  localStorage.setItem(CALENDAR_STORAGE_KEY, JSON.stringify(calendarEvents));
+}
+
 function formatUpdated(timestamp) {
   if (!timestamp) return "Never";
   return new Date(timestamp).toLocaleDateString();
@@ -261,6 +294,13 @@ function formatDateKey(date) {
   return `${year}-${month}-${dayNum}`;
 }
 
+function formatCalendarDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const dayNum = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${dayNum}`;
+}
+
 function parseDateKey(key) {
   if (!key) return null;
   const [year, month, day] = key.split("-").map(Number);
@@ -272,6 +312,20 @@ function addDays(date, amount) {
   const next = new Date(date);
   next.setDate(next.getDate() + amount);
   return next;
+}
+
+function addMonths(date, amount) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + amount);
+  return next;
+}
+
+function startOfWeek(date) {
+  const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const weekday = day.getDay();
+  const diff = (weekday + 6) % 7;
+  day.setDate(day.getDate() - diff);
+  return day;
 }
 
 function daysBetween(startDate, endDate) {
@@ -682,6 +736,9 @@ function setPage(target) {
   }
   if (safeTarget === "class") {
     assignmentNameInput.focus();
+  }
+  if (safeTarget === "calendar") {
+    renderCalendarWeek();
   }
 }
 
@@ -1374,6 +1431,121 @@ function updatePlanNotes(value) {
   savePlans();
 }
 
+function formatCalendarHeader(date) {
+  return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+function formatCalendarRange(startDate) {
+  const endDate = addDays(startDate, 6);
+  const startLabel = startDate.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const endLabel = endDate.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return `${startLabel} – ${endLabel}`;
+}
+
+function formatTimeLabel(hour) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display} ${suffix}`;
+}
+
+function buildDateTime(date, timeString) {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours || 0, minutes || 0);
+}
+
+function renderCalendarWeek() {
+  const today = new Date();
+  const minWeek = startOfWeek(today);
+  const maxWeek = startOfWeek(addMonths(today, 4));
+  calendarPrev.disabled = calendarWeekStart <= minWeek;
+  calendarNext.disabled = calendarWeekStart >= maxWeek;
+  calendarRange.textContent = formatCalendarRange(calendarWeekStart);
+
+  calendarGrid.innerHTML = "";
+
+  calendarGrid.appendChild(document.createElement("div"));
+  for (let i = 0; i < 7; i += 1) {
+    const dayDate = addDays(calendarWeekStart, i);
+    const header = document.createElement("div");
+    header.className = "calendar-header";
+    header.textContent = formatCalendarHeader(dayDate);
+    calendarGrid.appendChild(header);
+  }
+
+  for (let hour = 8; hour <= 20; hour += 1) {
+    const timeCell = document.createElement("div");
+    timeCell.className = "calendar-time";
+    timeCell.textContent = formatTimeLabel(hour);
+    calendarGrid.appendChild(timeCell);
+
+    for (let day = 0; day < 7; day += 1) {
+      const date = addDays(calendarWeekStart, day);
+      const cell = document.createElement("div");
+      cell.className = "calendar-cell";
+      cell.dataset.date = formatCalendarDateKey(date);
+      cell.dataset.hour = String(hour);
+      cell.addEventListener("click", () => openCalendarModal(date, hour));
+
+      const events = calendarEvents.filter((eventItem) => {
+        const startDate = new Date(eventItem.start);
+        return (
+          startDate.getFullYear() === date.getFullYear() &&
+          startDate.getMonth() === date.getMonth() &&
+          startDate.getDate() === date.getDate() &&
+          startDate.getHours() === hour
+        );
+      });
+
+      events.forEach((eventItem) => {
+        const pill = document.createElement("div");
+        pill.className = "calendar-event";
+        pill.textContent = eventItem.title;
+        cell.appendChild(pill);
+      });
+
+      calendarGrid.appendChild(cell);
+    }
+  }
+}
+
+function openCalendarModal(date, hour) {
+  calendarSelectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  calendarDateLabel.textContent = calendarSelectedDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+  calendarTitle.value = "";
+  calendarNotes.value = "";
+  const startTime = `${String(hour).padStart(2, "0")}:00`;
+  const endHour = hour + 1;
+  const endTime = `${String(endHour).padStart(2, "0")}:00`;
+  calendarStart.value = startTime;
+  calendarEnd.value = endTime;
+  calendarModal.hidden = false;
+}
+
+function closeCalendarModal() {
+  calendarModal.hidden = true;
+  calendarSelectedDate = null;
+}
+
+function addCalendarEvent() {
+  if (!calendarSelectedDate) return;
+  const title = calendarTitle.value.trim();
+  if (!title) return;
+  const start = buildDateTime(calendarSelectedDate, calendarStart.value);
+  const end = buildDateTime(calendarSelectedDate, calendarEnd.value);
+
+  calendarEvents.push({
+    id: crypto.randomUUID(),
+    title,
+    start: start.toISOString(),
+    end: end.toISOString(),
+    notes: calendarNotes.value.trim()
+  });
+
+  saveCalendarEvents();
+  renderCalendarWeek();
+  closeCalendarModal();
+}
+
 function toggleHabitToday(habitId) {
   const habit = habits.find((item) => item.id === habitId);
   if (!habit) return;
@@ -1647,6 +1819,33 @@ planEditorNotes.addEventListener("input", (event) => {
   updatePlanNotes(event.target.value);
 });
 
+calendarPrev.addEventListener("click", () => {
+  if (calendarPrev.disabled) return;
+  calendarWeekStart = addDays(calendarWeekStart, -7);
+  renderCalendarWeek();
+});
+
+calendarNext.addEventListener("click", () => {
+  if (calendarNext.disabled) return;
+  calendarWeekStart = addDays(calendarWeekStart, 7);
+  renderCalendarWeek();
+});
+
+calendarClose.addEventListener("click", () => {
+  closeCalendarModal();
+});
+
+calendarModal.addEventListener("click", (event) => {
+  if (event.target === calendarModal) {
+    closeCalendarModal();
+  }
+});
+
+calendarForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  addCalendarEvent();
+});
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest(".habit-ring");
   if (!button) return;
@@ -1672,14 +1871,15 @@ semesterLockButton.addEventListener("click", () => {
 
 exportButton.addEventListener("click", () => {
   const payload = {
-    version: 5,
+    version: 6,
     exportedAt: new Date().toISOString(),
     lists,
     schoolData,
     habits,
     goals,
     hobbies,
-    plans
+    plans,
+    calendarEvents
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json"
@@ -1712,6 +1912,9 @@ importFileInput.addEventListener("change", (event) => {
       const nextGoals = Array.isArray(parsed.goals) ? parsed.goals : [];
       const nextHobbies = Array.isArray(parsed.hobbies) ? parsed.hobbies : [];
       const nextPlans = Array.isArray(parsed.plans) ? parsed.plans : [];
+      const nextCalendarEvents = Array.isArray(parsed.calendarEvents)
+        ? parsed.calendarEvents
+        : [];
 
       const confirmed = window.confirm(
         "Importing will replace your current data. Continue?"
@@ -1724,6 +1927,7 @@ importFileInput.addEventListener("change", (event) => {
       goals = nextGoals;
       hobbies = nextHobbies;
       plans = nextPlans;
+      calendarEvents = nextCalendarEvents;
       currentListId = null;
       currentSemesterId = null;
       currentClassId = null;
@@ -1733,11 +1937,13 @@ importFileInput.addEventListener("change", (event) => {
       saveGoals();
       saveHobbies();
       savePlans();
+      saveCalendarEvents();
       renderLists();
       renderAllHabits();
       renderGoals();
       renderHobbies();
       renderPlans();
+      renderCalendarWeek();
       setPage("home");
     } catch (error) {
       console.warn("Import failed", error);
@@ -1754,6 +1960,7 @@ renderAllHabits();
 renderGoals();
 renderHobbies();
 renderPlans();
+renderCalendarWeek();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

@@ -742,6 +742,20 @@ h1 {
   gap: 6px;
 }
 
+.calendar-controls {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.calendar-range {
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
 .calendar-header,
 .calendar-time {
   font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
@@ -760,6 +774,86 @@ h1 {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
+  padding: 4px;
+  display: grid;
+  gap: 4px;
+}
+
+.calendar-event {
+  background: var(--dark-blue);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 4px 6px;
+  font-size: 0.75rem;
+  line-height: 1.1;
+}
+
+.calendar-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+
+.calendar-modal-card {
+  width: min(420px, 90vw);
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  color: var(--ink);
+}
+
+.calendar-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-modal-card h3 {
+  margin: 0;
+}
+
+.calendar-modal-card input,
+.calendar-modal-card textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  background: var(--dark-blue);
+  color: var(--ink);
+  font-family: "Georgia", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+.calendar-modal-card textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.calendar-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-row label {
+  display: grid;
+  gap: 6px;
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  font-size: 0.85rem;
+  color: var(--ink);
+  flex: 1;
+}
+
+.calendar-date {
+  font-family: "Avenir Next", "Optima", "Gill Sans", sans-serif;
+  font-size: 0.9rem;
+  color: var(--ink);
 }
 
 .school-grid {
