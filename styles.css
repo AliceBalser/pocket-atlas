@@ -770,7 +770,7 @@ h1 {
 }
 
 .calendar-cell {
-  min-height: 44px;
+  min-height: 66px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;

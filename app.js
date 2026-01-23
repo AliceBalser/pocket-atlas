@@ -1446,9 +1446,7 @@ function formatCalendarRange(startDate) {
 }
 
 function formatTimeLabel(hour) {
-  const minutes = Math.round((hour % 1) * 60);
-  const hours = Math.floor(hour);
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  return String(Math.floor(hour)).padStart(2, "0");
 }
 
 function buildDateTime(date, timeString) {
