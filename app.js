@@ -112,6 +112,7 @@ const calendarStart = document.getElementById("calendar-start");
 const calendarEnd = document.getElementById("calendar-end");
 const calendarNotes = document.getElementById("calendar-notes");
 const calendarRepeatInputs = document.querySelectorAll(".calendar-repeat input");
+const calendarDelete = document.getElementById("calendar-delete");
 
 let deferredInstallPrompt = null;
 let lists = loadLists();
@@ -1489,6 +1490,7 @@ function renderCalendarWeek() {
       const cellStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0);
       const cellEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour + 1, 0, 0);
 
+      const cellDateKey = formatCalendarDateKey(date);
       const events = calendarEvents.filter((eventItem) => {
         const startDate = new Date(eventItem.start);
         const endDate = new Date(eventItem.end);
@@ -1497,6 +1499,9 @@ function renderCalendarWeek() {
         }
 
         if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
+          if (Array.isArray(eventItem.exceptions) && eventItem.exceptions.includes(cellDateKey)) {
+            return false;
+          }
           const matchesDay = eventItem.repeatDays.includes(date.getDay());
           const startHour = startDate.getHours() + startDate.getMinutes() / 60;
           const endHour = endDate.getHours() + endDate.getMinutes() / 60;
@@ -1532,6 +1537,7 @@ function openCalendarModal(date, hour, eventItem) {
   calendarSelectedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   calendarDateLabel.textContent = calendarSelectedDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", year: "numeric" });
   calendarEditingId = eventItem ? eventItem.id : null;
+  calendarDelete.hidden = !eventItem;
   if (eventItem) {
     calendarTitle.value = eventItem.title || "";
     calendarNotes.value = eventItem.notes || "";
@@ -1557,6 +1563,7 @@ function closeCalendarModal() {
   calendarModal.hidden = true;
   calendarSelectedDate = null;
   calendarEditingId = null;
+  calendarDelete.hidden = true;
 }
 
 function addCalendarEvent() {
@@ -1575,6 +1582,7 @@ function addCalendarEvent() {
       existing.end = end.toISOString();
       existing.notes = calendarNotes.value.trim();
       existing.repeatDays = repeatDays;
+      existing.exceptions = Array.isArray(existing.exceptions) ? existing.exceptions : [];
     }
   } else {
     calendarEvents.push({
@@ -1583,7 +1591,8 @@ function addCalendarEvent() {
       start: start.toISOString(),
       end: end.toISOString(),
       notes: calendarNotes.value.trim(),
-      repeatDays
+      repeatDays,
+      exceptions: []
     });
   }
 
@@ -1615,9 +1624,33 @@ function isEventStartForCell(eventItem, date, hour) {
   if (matchesDate && matchesHour) return true;
 
   if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
+    const dateKey = formatCalendarDateKey(date);
+    if (Array.isArray(eventItem.exceptions) && eventItem.exceptions.includes(dateKey)) {
+      return false;
+    }
     return eventItem.repeatDays.includes(date.getDay()) && matchesHour;
   }
   return false;
+}
+
+function deleteCalendarEvent() {
+  if (!calendarEditingId || !calendarSelectedDate) return;
+  const eventItem = calendarEvents.find((item) => item.id === calendarEditingId);
+  if (!eventItem) return;
+
+  if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
+    const dateKey = formatCalendarDateKey(calendarSelectedDate);
+    eventItem.exceptions = Array.isArray(eventItem.exceptions) ? eventItem.exceptions : [];
+    if (!eventItem.exceptions.includes(dateKey)) {
+      eventItem.exceptions.push(dateKey);
+    }
+  } else {
+    calendarEvents = calendarEvents.filter((item) => item.id !== calendarEditingId);
+  }
+
+  saveCalendarEvents();
+  renderCalendarWeek();
+  closeCalendarModal();
 }
 
 function toggleHabitToday(habitId) {
@@ -1918,6 +1951,10 @@ calendarModal.addEventListener("click", (event) => {
 calendarForm.addEventListener("submit", (event) => {
   event.preventDefault();
   addCalendarEvent();
+});
+
+calendarDelete.addEventListener("click", () => {
+  deleteCalendarEvent();
 });
 
 document.addEventListener("click", (event) => {

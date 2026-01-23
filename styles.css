@@ -862,16 +862,30 @@ h1 {
 }
 
 .calendar-repeat {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   justify-content: flex-start;
+  align-items: flex-end;
 }
 
 .calendar-repeat label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
   flex: 0 0 auto;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+
+.calendar-repeat-item input {
+  margin: 0;
+}
+
+.calendar-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
 }
 
 .calendar-date {
