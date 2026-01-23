@@ -774,12 +774,21 @@ h1 {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 4px;
+  padding: 0;
   display: grid;
-  gap: 4px;
+  grid-template-rows: 1fr 1fr;
+  overflow: hidden;
 }
 
-.calendar-cell.is-busy {
+.calendar-cell-half {
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px 4px;
+}
+
+.calendar-cell-half.is-busy {
   background: var(--dark-blue);
 }
 
@@ -787,7 +796,7 @@ h1 {
   background: var(--dark-blue);
   color: var(--ink);
   border-radius: 8px;
-  padding: 4px 6px;
+  padding: 2px 6px;
   font-size: 0.7rem;
   white-space: nowrap;
   overflow: hidden;

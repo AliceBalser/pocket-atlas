@@ -1481,7 +1481,7 @@ function renderCalendarWeek() {
     calendarGrid.appendChild(header);
   }
 
-  for (let hour = 8; hour <= 20; hour += 0.5) {
+  for (let hour = 8; hour <= 20; hour += 1) {
     const timeCell = document.createElement("div");
     timeCell.className = "calendar-time";
     timeCell.textContent = formatTimeLabel(hour);
@@ -1495,12 +1495,12 @@ function renderCalendarWeek() {
       cell.dataset.hour = String(hour);
       cell.addEventListener("click", () => openCalendarModal(date, hour));
 
-      const cellMinutes = Math.round((hour % 1) * 60);
-      const cellStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(hour), cellMinutes, 0);
-      const endMinutes = cellMinutes + 30;
-      const endHour = Math.floor(hour) + Math.floor(endMinutes / 60);
-      const endMinuteValue = endMinutes % 60;
-      const cellEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endHour, endMinuteValue, 0);
+      const topHalf = document.createElement("div");
+      topHalf.className = "calendar-cell-half";
+      const bottomHalf = document.createElement("div");
+      bottomHalf.className = "calendar-cell-half";
+      cell.appendChild(topHalf);
+      cell.appendChild(bottomHalf);
 
       const cellDateKey = formatCalendarDateKey(date);
       const events = calendarEvents.filter((eventItem) => {
@@ -1517,18 +1517,24 @@ function renderCalendarWeek() {
           const matchesDay = eventItem.repeatDays.includes(date.getDay());
           const startHour = startDate.getHours() + startDate.getMinutes() / 60;
           const endHour = endDate.getHours() + endDate.getMinutes() / 60;
-          return matchesDay && hour >= startHour && hour < endHour;
+          return matchesDay && hour < endHour && hour + 1 > startHour;
         }
 
+        const cellStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0);
+        const cellEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour + 1, 0, 0);
         return startDate < cellEnd && endDate > cellStart;
       });
 
-      if (events.length > 0) {
-        cell.classList.add("is-busy");
-      }
-
       events.forEach((eventItem) => {
-        if (isEventStartForCell(eventItem, date, hour)) {
+        const overlap = getEventOverlap(eventItem, date, hour, cellDateKey);
+        if (overlap.top) {
+          topHalf.classList.add("is-busy");
+        }
+        if (overlap.bottom) {
+          bottomHalf.classList.add("is-busy");
+        }
+
+        if (overlap.isStart) {
           const pill = document.createElement("div");
           pill.className = "calendar-event";
           pill.textContent = eventItem.title;
@@ -1536,7 +1542,11 @@ function renderCalendarWeek() {
             event.stopPropagation();
             openCalendarModal(date, hour, eventItem);
           });
-          cell.appendChild(pill);
+          if (overlap.startInBottom) {
+            bottomHalf.appendChild(pill);
+          } else {
+            topHalf.appendChild(pill);
+          }
         }
       });
 
@@ -1624,24 +1634,55 @@ function setRepeatInputs(days) {
   });
 }
 
-function isEventStartForCell(eventItem, date, hour) {
+function getEventOverlap(eventItem, date, hour, dateKey) {
   const startDate = new Date(eventItem.start);
-  if (Number.isNaN(startDate.getTime())) return false;
-  const matchesDate =
-    startDate.getFullYear() === date.getFullYear() &&
-    startDate.getMonth() === date.getMonth() &&
-    startDate.getDate() === date.getDate();
-  const matchesHour = startDate.getHours() + startDate.getMinutes() / 60 === hour;
-  if (matchesDate && matchesHour) return true;
+  const endDate = new Date(eventItem.end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return { top: false, bottom: false, isStart: false, startInBottom: false };
+  }
+
+  const topRangeStart = hour;
+  const topRangeEnd = hour + 0.5;
+  const bottomRangeStart = hour + 0.5;
+  const bottomRangeEnd = hour + 1;
+
+  let startHour = startDate.getHours() + startDate.getMinutes() / 60;
+  let endHour = endDate.getHours() + endDate.getMinutes() / 60;
+  let isStart = false;
 
   if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
-    const dateKey = formatCalendarDateKey(date);
     if (Array.isArray(eventItem.exceptions) && eventItem.exceptions.includes(dateKey)) {
-      return false;
+      return { top: false, bottom: false, isStart: false, startInBottom: false };
     }
-    return eventItem.repeatDays.includes(date.getDay()) && matchesHour;
+    if (!eventItem.repeatDays.includes(date.getDay())) {
+      return { top: false, bottom: false, isStart: false, startInBottom: false };
+    }
+  } else {
+    const matchesDate =
+      startDate.getFullYear() === date.getFullYear() &&
+      startDate.getMonth() === date.getMonth() &&
+      startDate.getDate() === date.getDate();
+    if (matchesDate && startHour >= hour && startHour < hour + 1) {
+      isStart = true;
+    }
   }
-  return false;
+
+  const overlapsTop = startHour < topRangeEnd && endHour > topRangeStart;
+  const overlapsBottom = startHour < bottomRangeEnd && endHour > bottomRangeStart;
+  const startInBottom = startHour >= bottomRangeStart;
+
+  if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
+    if (startHour >= hour && startHour < hour + 1) {
+      isStart = true;
+    }
+  }
+
+  return {
+    top: overlapsTop,
+    bottom: overlapsBottom,
+    isStart,
+    startInBottom
+  };
 }
 
 function deleteCalendarEvent() {
