@@ -1446,12 +1446,20 @@ function formatCalendarRange(startDate) {
 }
 
 function formatTimeLabel(hour) {
-  return `${String(hour).padStart(2, "0")}`;
+  const minutes = Math.round((hour % 1) * 60);
+  const hours = Math.floor(hour);
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 function buildDateTime(date, timeString) {
   const [hours, minutes] = timeString.split(":").map(Number);
   return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours || 0, minutes || 0);
+}
+
+function hourSlotToTime(hourSlot) {
+  const minutes = Math.round((hourSlot % 1) * 60);
+  const hours = Math.floor(hourSlot);
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
 function renderCalendarWeek() {
@@ -1473,7 +1481,7 @@ function renderCalendarWeek() {
     calendarGrid.appendChild(header);
   }
 
-  for (let hour = 8; hour <= 20; hour += 1) {
+  for (let hour = 8; hour <= 20; hour += 0.5) {
     const timeCell = document.createElement("div");
     timeCell.className = "calendar-time";
     timeCell.textContent = formatTimeLabel(hour);
@@ -1487,8 +1495,12 @@ function renderCalendarWeek() {
       cell.dataset.hour = String(hour);
       cell.addEventListener("click", () => openCalendarModal(date, hour));
 
-      const cellStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, 0, 0);
-      const cellEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour + 1, 0, 0);
+      const cellMinutes = Math.round((hour % 1) * 60);
+      const cellStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), Math.floor(hour), cellMinutes, 0);
+      const endMinutes = cellMinutes + 30;
+      const endHour = Math.floor(hour) + Math.floor(endMinutes / 60);
+      const endMinuteValue = endMinutes % 60;
+      const cellEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), endHour, endMinuteValue, 0);
 
       const cellDateKey = formatCalendarDateKey(date);
       const events = calendarEvents.filter((eventItem) => {
@@ -1549,9 +1561,8 @@ function openCalendarModal(date, hour, eventItem) {
   } else {
     calendarTitle.value = "";
     calendarNotes.value = "";
-    const startTime = `${String(hour).padStart(2, "0")}:00`;
-    const endHour = hour + 1;
-    const endTime = `${String(endHour).padStart(2, "0")}:00`;
+    const startTime = hourSlotToTime(hour);
+    const endTime = hourSlotToTime(hour + 1);
     calendarStart.value = startTime;
     calendarEnd.value = endTime;
     setRepeatInputs([]);
@@ -1620,7 +1631,7 @@ function isEventStartForCell(eventItem, date, hour) {
     startDate.getFullYear() === date.getFullYear() &&
     startDate.getMonth() === date.getMonth() &&
     startDate.getDate() === date.getDate();
-  const matchesHour = startDate.getHours() === hour;
+  const matchesHour = startDate.getHours() + startDate.getMinutes() / 60 === hour;
   if (matchesDate && matchesHour) return true;
 
   if (Array.isArray(eventItem.repeatDays) && eventItem.repeatDays.length > 0) {
